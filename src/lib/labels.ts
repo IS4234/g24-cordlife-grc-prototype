@@ -1,5 +1,13 @@
 import type { TempStatus } from '../domain/rules'
-import type { DeviationStatus, EscalationLevel, ServiceStatus, Severity } from '../domain/types'
+import type { DeviationCategory, DeviationStatus, EscalationLevel, ServiceStatus, Severity } from '../domain/types'
+
+export const CATEGORY_LABEL: Record<DeviationCategory, string> = {
+  storage_temperature: 'Storage temperature',
+  collection_bag: 'Collection bag / supplier',
+  freezing: 'Freezing / processing',
+  equipment: 'Equipment',
+  other: 'Other',
+}
 
 export type Tone = 'ok' | 'warn' | 'crit' | 'neutral' | 'brand'
 

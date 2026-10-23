@@ -1,0 +1,47 @@
+.register {
+  display: grid;
+  gap: 16px;
+}
+
+.register__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.register__head h2 {
+  font-size: 20px;
+}
+
+.register__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: #eef1f2;
+}
+
+.segmented__btn {
+  padding: 5px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.segmented__btn--active {
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}

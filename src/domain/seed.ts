@@ -1,7 +1,7 @@
 import type { AppState, Tank } from './types'
 
 // Bump when the shape of AppState changes, so browsers holding old data reload the seed
-export const STATE_VERSION = 2
+export const STATE_VERSION = 3
 
 // Demo starts on a Monday morning, Singapore time
 const START = '2026-10-26T09:00:00+08:00'
@@ -58,7 +58,7 @@ export function createSeedState(): AppState {
 
   return {
     version: STATE_VERSION,
-    simTime: START,
+    simTime: new Date(START).toISOString(),
     tanks,
     settings: {
       thresholdC: -150,

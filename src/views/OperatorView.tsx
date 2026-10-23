@@ -1,3 +1,4 @@
+import { DeviationRegister } from '../components/DeviationRegister'
 import { Pill } from '../components/Pill'
 import { TankCard } from '../components/TankCard'
 import { activeSensorDeviation, isActive } from '../domain/deviations'
@@ -64,6 +65,8 @@ export function OperatorView() {
           ))}
         </div>
       </section>
+
+      <DeviationRegister role="operator" actorId={DEFAULT_PERSON.operator} canRaise />
     </div>
   )
 }

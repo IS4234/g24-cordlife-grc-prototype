@@ -5,7 +5,7 @@ import type { AppState, Deviation } from './types'
 export type NewDeviation = Pick<
   Deviation,
   'title' | 'description' | 'source' | 'category' | 'severity' | 'raisedBy' | 'evidence'
-> & { tankId?: string }
+> & { tankId?: string; unitsAffected?: number }
 
 export function createDeviation(s: AppState, input: NewDeviation): AppState {
   const year = new Date(s.simTime).getFullYear()
@@ -29,6 +29,10 @@ export function createDeviation(s: AppState, input: NewDeviation): AppState {
       detail: `${how} ${input.severity} deviation: ${input.title}`,
     },
   )
+}
+
+export function updateDeviation(s: AppState, id: string, update: (d: Deviation) => Deviation): AppState {
+  return { ...s, deviations: s.deviations.map((d) => (d.id === id ? update(d) : d)) }
 }
 
 export function isActive(d: Deviation): boolean {

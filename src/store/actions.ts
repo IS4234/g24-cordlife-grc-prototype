@@ -1,6 +1,21 @@
 import { withAudit } from '../domain/audit'
+import { createDeviation, type NewDeviation } from '../domain/deviations'
+import { assignOwner, escalateManually } from '../domain/escalation'
 import { advanceMinutes } from '../domain/simulation'
+import type { EscalationLevel } from '../domain/types'
 import { setState } from './store'
+
+export function raiseDeviation(input: NewDeviation) {
+  setState((s) => createDeviation(s, input))
+}
+
+export function escalateDeviation(id: string, to: EscalationLevel, actorId: string, reason: string) {
+  setState((s) => escalateManually(s, id, to, actorId, reason))
+}
+
+export function assignDeviation(id: string, ownerId: string, actorId: string) {
+  setState((s) => assignOwner(s, id, ownerId, actorId))
+}
 
 export function advanceClock(minutes: number) {
   setState((s) => advanceMinutes(s, minutes))

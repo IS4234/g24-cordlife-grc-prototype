@@ -1,5 +1,6 @@
 import { SYSTEM_ACTOR } from './people'
 import { activeSensorDeviation, createDeviation } from './deviations'
+import { applyDeadlines } from './escalation'
 import { addMinutes, severityForBreach, tempStatus } from './rules'
 import type { AppState, Tank } from './types'
 
@@ -55,7 +56,7 @@ function detectBreaches(s: AppState): AppState {
 
 function stepMinute(s: AppState): AppState {
   const next = { ...s, simTime: addMinutes(s.simTime, 1), tanks: s.tanks.map(stepTank) }
-  return detectBreaches(next)
+  return applyDeadlines(detectBreaches(next))
 }
 
 export function advanceMinutes(s: AppState, minutes: number): AppState {

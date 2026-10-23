@@ -42,6 +42,8 @@ export interface Deviation {
   source: 'sensor' | 'manual'
   category: DeviationCategory
   tankId?: string
+  /** Units that may be affected, used by the manual severity rule */
+  unitsAffected?: number
   severity: Severity
   status: DeviationStatus
   escalationLevel: EscalationLevel
@@ -55,6 +57,8 @@ export interface Deviation {
   evidence: string[]
   approvals: Approval[]
   closedAt?: string
+  /** Set when the deviation is pushed to the regulator */
+  mohNotifiedAt?: string
 }
 
 export interface AuditEntry {
