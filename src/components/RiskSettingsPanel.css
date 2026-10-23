@@ -1,0 +1,60 @@
+.risk {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.risk__head {
+  display: grid;
+  gap: 4px;
+}
+
+.risk__head h2 {
+  font-size: 20px;
+}
+
+.risk__head p {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--muted);
+}
+
+.risk__form {
+  display: grid;
+  gap: 16px;
+}
+
+.risk__group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.risk__group legend {
+  padding: 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.risk__reason {
+  max-width: 640px;
+}
+
+.risk__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.risk__saved {
+  font-size: 13px;
+  color: var(--muted);
+}

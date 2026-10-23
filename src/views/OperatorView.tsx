@@ -1,4 +1,5 @@
 import { DeviationRegister } from '../components/DeviationRegister'
+import { KpiRow, KpiTile } from '../components/KpiTile'
 import { Pill } from '../components/Pill'
 import { TankCard } from '../components/TankCard'
 import { activeSensorDeviation, isActive } from '../domain/deviations'
@@ -25,12 +26,12 @@ export function OperatorView() {
 
   return (
     <div className="operator">
-      <div className="kpis">
-        <Kpi label="Tanks within limit" value={`${inLimit} / ${monitored.length}`} tone={breaches ? 'crit' : 'ok'} />
-        <Kpi label="Tanks in breach" value={String(breaches)} tone={breaches ? 'crit' : 'ok'} />
-        <Kpi label="Open deviations" value={String(active.length)} tone={active.length ? 'warn' : 'ok'} />
-        <Kpi label="Tanks due for service" value={String(serviceDue)} tone={serviceDue ? 'warn' : 'ok'} />
-      </div>
+      <KpiRow>
+        <KpiTile label="Tanks within limit" value={`${inLimit} / ${monitored.length}`} tone={breaches ? 'crit' : 'ok'} />
+        <KpiTile label="Tanks in breach" value={String(breaches)} tone={breaches ? 'crit' : 'ok'} />
+        <KpiTile label="Open deviations" value={String(active.length)} tone={active.length ? 'warn' : 'ok'} />
+        <KpiTile label="Tanks due for service" value={String(serviceDue)} tone={serviceDue ? 'warn' : 'ok'} />
+      </KpiRow>
 
       {alerts.length > 0 && (
         <section className="alerts" aria-label="Critical alerts">
@@ -67,15 +68,6 @@ export function OperatorView() {
       </section>
 
       <DeviationRegister role="operator" actorId={DEFAULT_PERSON.operator} canRaise />
-    </div>
-  )
-}
-
-function Kpi({ label, value, tone }: { label: string; value: string; tone: 'ok' | 'warn' | 'crit' }) {
-  return (
-    <div className={`kpi kpi--${tone}`}>
-      <span className="kpi__label">{label}</span>
-      <span className="kpi__value mono">{value}</span>
     </div>
   )
 }

@@ -1,0 +1,52 @@
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+}
+
+.kpi {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.kpi__label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.kpi__value {
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.kpi--ok .kpi__value {
+  color: var(--text);
+}
+
+.kpi--warn .kpi__value {
+  color: var(--warn);
+}
+
+.kpi--crit .kpi__value {
+  color: var(--crit);
+}
+
+.kpi__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.kpi__reg {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--teal-dark);
+}

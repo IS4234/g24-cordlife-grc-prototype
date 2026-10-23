@@ -11,7 +11,8 @@ import {
 import { createDeviation, type NewDeviation } from '../domain/deviations'
 import { assignOwner, escalateManually } from '../domain/escalation'
 import { advanceMinutes } from '../domain/simulation'
-import type { EscalationLevel, Severity } from '../domain/types'
+import { updateSettings } from '../domain/settings'
+import type { EscalationLevel, RiskSettings, Severity } from '../domain/types'
 import { setState } from './store'
 
 export function submitClosure(id: string, actorId: string, input: ClosureSubmission) {
@@ -38,6 +39,10 @@ export function requestDeviationChange(
 
 export function decideDeviationChange(id: string, personId: string, approve: boolean) {
   setState((s) => (approve ? approveChange(s, id, personId) : rejectChange(s, id, personId)))
+}
+
+export function saveRiskSettings(next: RiskSettings, actorId: string, reason: string) {
+  setState((s) => updateSettings(s, next, actorId, reason))
 }
 
 export function raiseDeviation(input: NewDeviation) {

@@ -3,43 +3,6 @@
   gap: 28px;
 }
 
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.kpi {
-  display: grid;
-  gap: 4px;
-  padding: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-
-.kpi__label {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.kpi__value {
-  font-size: 28px;
-  font-weight: 500;
-}
-
-.kpi--ok .kpi__value {
-  color: var(--text);
-}
-
-.kpi--warn .kpi__value {
-  color: var(--warn);
-}
-
-.kpi--crit .kpi__value {
-  color: var(--crit);
-}
-
 .alerts {
   display: grid;
   gap: 8px;
