@@ -1,0 +1,54 @@
+.acting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.acting__label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.acting__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.acting__person {
+  display: grid;
+  gap: 1px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  text-align: left;
+  cursor: pointer;
+}
+
+.acting__person:hover {
+  border-color: var(--teal);
+}
+
+.acting__person--active {
+  border-color: var(--button);
+  background: var(--button);
+  color: var(--white);
+}
+
+.acting__person--active:hover {
+  border-color: var(--button);
+}
+
+.acting__name {
+  font-weight: 500;
+}
+
+.acting__title {
+  font-size: 12px;
+  opacity: 0.8;
+}

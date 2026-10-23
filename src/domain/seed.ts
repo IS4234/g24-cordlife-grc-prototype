@@ -1,7 +1,7 @@
 import type { AppState, Tank } from './types'
 
 // Bump when the shape of AppState changes, so browsers holding old data reload the seed
-export const STATE_VERSION = 3
+export const STATE_VERSION = 4
 
 // Demo starts on a Monday morning, Singapore time
 const START = '2026-10-26T09:00:00+08:00'
@@ -117,10 +117,8 @@ export function createSeedState(): AppState {
         rootCause: 'Probe calibration drift within expected annual range.',
         capa: 'Recalibrated probe; added monthly reference check for all tanks.',
         evidence: ['Calibration certificate T-05.pdf', 'Reference reading photo.jpg'],
-        approvals: [
-          { personId: 'p-daniel', at: daysFrom(START, -7) },
-          { personId: 'p-marcus', at: daysFrom(START, -7) },
-        ],
+        submittedBy: 'p-daniel',
+        approvals: [{ personId: 'p-rachel', at: daysFrom(START, -7) }],
         closedAt: daysFrom(START, -7),
       },
     ],
@@ -136,10 +134,10 @@ export function createSeedState(): AppState {
       {
         id: 'AUD-0002',
         at: daysFrom(START, -7),
-        actorId: 'p-daniel',
+        actorId: 'p-rachel',
         action: 'deviation.closed',
         entityId: 'DEV-2026-003',
-        detail: 'Closed with root cause, CAPA and 2 approvals',
+        detail: 'Closed with root cause, CAPA and approval from Dr Rachel Ng (submitted by Daniel Koh)',
       },
       {
         id: 'AUD-0003',

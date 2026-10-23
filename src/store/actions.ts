@@ -1,9 +1,44 @@
 import { withAudit } from '../domain/audit'
+import {
+  approveChange,
+  approveClosure,
+  type ClosureSubmission,
+  rejectChange,
+  rejectClosure,
+  requestChange,
+  submitForClosure,
+} from '../domain/closure'
 import { createDeviation, type NewDeviation } from '../domain/deviations'
 import { assignOwner, escalateManually } from '../domain/escalation'
 import { advanceMinutes } from '../domain/simulation'
-import type { EscalationLevel } from '../domain/types'
+import type { EscalationLevel, Severity } from '../domain/types'
 import { setState } from './store'
+
+export function submitClosure(id: string, actorId: string, input: ClosureSubmission) {
+  setState((s) => submitForClosure(s, id, actorId, input))
+}
+
+export function approveDeviationClosure(id: string, personId: string, note?: string) {
+  setState((s) => approveClosure(s, id, personId, note))
+}
+
+export function rejectDeviationClosure(id: string, personId: string, reason: string) {
+  setState((s) => rejectClosure(s, id, personId, reason))
+}
+
+export function requestDeviationChange(
+  id: string,
+  actorId: string,
+  kind: 'downgrade' | 'dismiss',
+  reason: string,
+  to?: Severity,
+) {
+  setState((s) => requestChange(s, id, actorId, kind, reason, to))
+}
+
+export function decideDeviationChange(id: string, personId: string, approve: boolean) {
+  setState((s) => (approve ? approveChange(s, id, personId) : rejectChange(s, id, personId)))
+}
 
 export function raiseDeviation(input: NewDeviation) {
   setState((s) => createDeviation(s, input))

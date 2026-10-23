@@ -1,0 +1,99 @@
+.panel--highlight {
+  border-color: var(--teal);
+  background: var(--teal-tint);
+}
+
+.panel--warn {
+  border-color: var(--warn);
+  background: var(--warn-tint);
+}
+
+.panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.checklist__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.checklist__item--met {
+  color: var(--text);
+}
+
+.checklist__mark {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border: 1.5px solid #b8c3c7;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.checklist__item--met .checklist__mark {
+  border-color: var(--ok);
+  background: var(--ok);
+  color: var(--white);
+}
+
+.approvals {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.approvals__note {
+  display: block;
+  color: var(--muted);
+}
+
+.blocked {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--crit-tint);
+  color: var(--crit);
+  font-size: 13px;
+}
+
+.form-errors {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--warn);
+}
+
+.request-reason {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--warn);
+  background: var(--white);
+  font-size: 14px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -77,6 +77,16 @@
   letter-spacing: 0.04em;
 }
 
+.dev-table__flag {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--warn);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .dev-table__none {
   color: var(--muted);
 }

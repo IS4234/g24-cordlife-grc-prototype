@@ -7,6 +7,7 @@ import { formatDateTime, formatDue } from '../lib/format'
 import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL, SEVERITY } from '../lib/labels'
 import type { RoleId } from '../roles'
 import { assignDeviation, escalateDeviation } from '../store/actions'
+import { ApprovalPanel, ChangeRequestPanel, PendingChangePanel, SubmitClosurePanel } from './ClosurePanels'
 import { Pill } from './Pill'
 import './DeviationDetail.css'
 
@@ -19,6 +20,7 @@ interface DeviationDetailProps {
 
 export function DeviationDetail({ deviation: d, state, role, actorId }: DeviationDetailProps) {
   const active = isActive(d)
+  const governs = role === 'cgo' || role === 'board'
   const due = formatDue(d.dueAt, state.simTime)
   const timeline = state.audit.filter((a) => a.entityId === d.id).reverse()
 
@@ -27,6 +29,8 @@ export function DeviationDetail({ deviation: d, state, role, actorId }: Deviatio
       <div className="detail__pills">
         <Pill tone={SEVERITY[d.severity].tone}>{SEVERITY[d.severity].label}</Pill>
         <Pill tone={DEVIATION_STATUS[d.status].tone}>{DEVIATION_STATUS[d.status].label}</Pill>
+        {d.dismissed && <Pill tone="neutral">Dismissed</Pill>}
+        {d.pendingChange && <Pill tone="warn">Change requested</Pill>}
         {d.mohNotifiedAt && <Pill tone="crit">MOH notified</Pill>}
       </div>
 
@@ -64,7 +68,29 @@ export function DeviationDetail({ deviation: d, state, role, actorId }: Deviatio
         </section>
       )}
 
-      {active && role === 'cgo' && <AssignPanel deviation={d} actorId={actorId} />}
+      {(d.rootCause || d.capa) && (
+        <section className="detail__section">
+          <h4>Investigation</h4>
+          <dl className="detail__facts detail__facts--stacked">
+            {d.rootCause && <Fact label="Root cause" value={d.rootCause} />}
+            {d.capa && <Fact label="Corrective and preventive action" value={d.capa} />}
+          </dl>
+        </section>
+      )}
+
+      {active && governs && d.pendingChange && <PendingChangePanel key={`chg-${d.id}`} deviation={d} actorId={actorId} />}
+      {active && governs && d.status === 'pending_closure' && (
+        <ApprovalPanel key={`appr-${d.id}`} deviation={d} actorId={actorId} />
+      )}
+      {active && role === 'cgo' && d.status !== 'pending_closure' && (
+        <AssignPanel key={`assign-${d.id}`} deviation={d} actorId={actorId} />
+      )}
+      {active && governs && !d.pendingChange && d.status !== 'pending_closure' && (
+        <>
+          <SubmitClosurePanel key={`submit-${d.id}`} deviation={d} actorId={actorId} />
+          <ChangeRequestPanel key={`req-${d.id}`} deviation={d} actorId={actorId} />
+        </>
+      )}
       {active && role !== 'moh' && levelsAbove(d.escalationLevel).length > 0 && (
         <EscalatePanel deviation={d} actorId={actorId} />
       )}

@@ -35,6 +35,15 @@ export interface Approval {
   note?: string
 }
 
+/** A request to lower severity or dismiss a deviation. Never applied without a second person. */
+export interface ChangeRequest {
+  kind: 'downgrade' | 'dismiss'
+  to?: Severity
+  requestedBy: string
+  reason: string
+  at: string
+}
+
 export interface Deviation {
   id: string
   title: string
@@ -56,6 +65,11 @@ export interface Deviation {
   capa?: string
   evidence: string[]
   approvals: Approval[]
+  /** Who submitted the root cause and CAPA for closure */
+  submittedBy?: string
+  pendingChange?: ChangeRequest
+  /** Closed through an approved dismissal rather than a completed investigation */
+  dismissed?: boolean
   closedAt?: string
   /** Set when the deviation is pushed to the regulator */
   mohNotifiedAt?: string

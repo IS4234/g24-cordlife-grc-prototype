@@ -53,7 +53,12 @@ export function DeviationTable({ deviations, now, onSelect }: DeviationTableProp
                   <Pill tone={SEVERITY[d.severity].tone}>{SEVERITY[d.severity].label}</Pill>
                 </td>
                 <td>
-                  <Pill tone={DEVIATION_STATUS[d.status].tone}>{DEVIATION_STATUS[d.status].label}</Pill>
+                  {d.dismissed ? (
+                    <Pill tone="neutral">Dismissed</Pill>
+                  ) : (
+                    <Pill tone={DEVIATION_STATUS[d.status].tone}>{DEVIATION_STATUS[d.status].label}</Pill>
+                  )}
+                  {d.pendingChange && <span className="dev-table__flag">Change requested</span>}
                 </td>
                 <td>
                   <span className="dev-table__level">

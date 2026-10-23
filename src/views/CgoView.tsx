@@ -1,6 +1,16 @@
+import { ActingAs } from '../components/ActingAs'
 import { DeviationRegister } from '../components/DeviationRegister'
-import { DEFAULT_PERSON } from '../domain/people'
 
-export function CgoView() {
-  return <DeviationRegister role="cgo" actorId={DEFAULT_PERSON.cgo} canRaise />
+interface CgoViewProps {
+  actorId: string
+  onActorChange: (personId: string) => void
+}
+
+export function CgoView({ actorId, onActorChange }: CgoViewProps) {
+  return (
+    <>
+      <ActingAs role="cgo" personId={actorId} onChange={onActorChange} />
+      <DeviationRegister role="cgo" actorId={actorId} canRaise />
+    </>
+  )
 }

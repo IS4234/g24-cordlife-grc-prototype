@@ -36,6 +36,14 @@
   font-weight: 500;
 }
 
+.detail__facts--stacked {
+  grid-template-columns: 1fr;
+}
+
+.detail__facts--stacked dd {
+  font-weight: 400;
+}
+
 .detail__late {
   color: var(--crit);
 }
