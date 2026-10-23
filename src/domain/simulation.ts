@@ -8,6 +8,7 @@ export const HISTORY_LENGTH = 40
 
 const WARMING_PER_MIN = 2.5
 const RECOVERY_PER_MIN = 8
+const AMBIENT_C = 22
 
 /** Each tank settles around a slightly different LN2 vapour-phase temperature */
 export function baselineFor(tankId: string): number {
@@ -23,7 +24,8 @@ function stepTank(tank: Tank): Tank {
   const base = baselineFor(tank.id)
   let temp = tank.tempC
   if (tank.fault === 'warming') {
-    temp += WARMING_PER_MIN + (Math.random() - 0.5) * 0.4
+    // A failed dewar warms towards room temperature, never past it
+    temp = Math.min(AMBIENT_C, temp + WARMING_PER_MIN + (Math.random() - 0.5) * 0.4)
   } else if (temp > base + 3) {
     temp = Math.max(base, temp - RECOVERY_PER_MIN)
   } else {

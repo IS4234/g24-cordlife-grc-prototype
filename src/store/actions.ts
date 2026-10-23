@@ -9,7 +9,7 @@ import {
   submitForClosure,
 } from '../domain/closure'
 import { createDeviation, type NewDeviation } from '../domain/deviations'
-import { assignOwner, escalateManually } from '../domain/escalation'
+import { acknowledgeAlert, assignOwner, escalateManually } from '../domain/escalation'
 import { advanceMinutes } from '../domain/simulation'
 import { updateSettings } from '../domain/settings'
 import type { EscalationLevel, RiskSettings, Severity } from '../domain/types'
@@ -51,6 +51,10 @@ export function raiseDeviation(input: NewDeviation) {
 
 export function escalateDeviation(id: string, to: EscalationLevel, actorId: string, reason: string) {
   setState((s) => escalateManually(s, id, to, actorId, reason))
+}
+
+export function acknowledgeMohAlert(id: string, actorId: string) {
+  setState((s) => acknowledgeAlert(s, id, actorId))
 }
 
 export function assignDeviation(id: string, ownerId: string, actorId: string) {

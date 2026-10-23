@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { AppShell } from './components/AppShell'
 import { SimulationBar } from './components/SimulationBar'
 import { DEFAULT_PERSON } from './domain/people'
-import { DEFAULT_ROLE, getRole, type RoleId } from './roles'
+import { DEFAULT_ROLE, type RoleId } from './roles'
 import { BoardView } from './views/BoardView'
 import { CgoView } from './views/CgoView'
+import { MohView } from './views/MohView'
 import { OperatorView } from './views/OperatorView'
 
 function App() {
@@ -18,7 +19,7 @@ function App() {
       {role === 'operator' && <OperatorView />}
       {role === 'cgo' && <CgoView actorId={cgoActor} onActorChange={setCgoActor} />}
       {role === 'board' && <BoardView />}
-      {role === 'moh' && <p>{getRole(role).label} view coming soon.</p>}
+      {role === 'moh' && <MohView />}
     </AppShell>
   )
 }

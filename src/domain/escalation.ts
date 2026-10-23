@@ -65,6 +65,19 @@ export function escalateManually(
   return escalate(s, d, to, actorId, `${personName(actorId)} escalated: ${reason.trim()}`)
 }
 
+/** MOH records that it has seen an alert. Acknowledging does not resolve or close anything. */
+export function acknowledgeAlert(s: AppState, id: string, actorId: string): AppState {
+  const d = s.deviations.find((x) => x.id === id)
+  if (!d?.mohNotifiedAt || d.mohAcknowledgedAt || getPerson(actorId)?.role !== 'moh') return s
+  const next = updateDeviation(s, id, (cur) => ({ ...cur, mohAcknowledgedAt: s.simTime }))
+  return withAudit(next, {
+    actorId,
+    action: 'deviation.moh_acknowledged',
+    entityId: id,
+    detail: 'MOH acknowledged the alert and is monitoring the investigation',
+  })
+}
+
 export function assignOwner(s: AppState, id: string, ownerId: string, actorId: string): AppState {
   const d = s.deviations.find((x) => x.id === id)
   if (!d || !isActive(d)) return s

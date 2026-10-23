@@ -73,6 +73,7 @@ export interface Deviation {
   closedAt?: string
   /** Set when the deviation is pushed to the regulator */
   mohNotifiedAt?: string
+  mohAcknowledgedAt?: string
 }
 
 export interface AuditEntry {
