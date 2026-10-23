@@ -1,0 +1,112 @@
+/* Design tokens: Cordlife palette (black, white, #2B9EA6) with dark pill buttons */
+:root {
+  --teal: #2b9ea6;
+  --teal-dark: #1f7d84;
+  --teal-tint: #effafa;
+  --button: #32373c;
+  --button-hover: #1c1f22;
+  --black: #111111;
+  --white: #ffffff;
+  --text: #1d2327;
+  --muted: #5f6b70;
+  --border: #e3e8ea;
+  --surface: #ffffff;
+  --page: #f7f9fa;
+
+  /* Status colours, kept separate from the brand palette */
+  --ok: #2e7d32;
+  --ok-tint: #e8f5e9;
+  --warn: #b26a00;
+  --warn-tint: #fff4e0;
+  --crit: #c62828;
+  --crit-tint: #fdecea;
+
+  --font: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Roboto Mono', ui-monospace, Menlo, monospace;
+  --radius: 8px;
+  --radius-pill: 999px;
+  --shadow: 0 1px 2px rgb(17 17 17 / 0.06), 0 2px 8px rgb(17 17 17 / 0.04);
+
+  color-scheme: light;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--page);
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--page);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+button {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* Buttons follow the Cordlife site: dark pill, white text */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--button);
+  color: var(--white);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn:hover {
+  background: var(--button-hover);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--button);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.btn--ghost:hover {
+  background: var(--teal-tint);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

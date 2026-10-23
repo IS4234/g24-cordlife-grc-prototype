@@ -1,0 +1,191 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.shell__header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.shell__bar,
+.roles,
+.hero__inner,
+.shell__main,
+.shell__footer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-inline: 24px;
+}
+
+.shell__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand__mark {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+
+.brand__mark span {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--teal);
+}
+
+.brand__mark span:nth-child(1) {
+  width: 16px;
+  height: 16px;
+  left: 0;
+  top: 4px;
+}
+
+.brand__mark span:nth-child(2) {
+  width: 7px;
+  height: 7px;
+  right: 2px;
+  top: 0;
+}
+
+.brand__mark span:nth-child(3) {
+  width: 11px;
+  height: 11px;
+  right: 0;
+  bottom: 0;
+  background: var(--button);
+}
+
+.brand__word {
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--teal-dark);
+  letter-spacing: -0.02em;
+}
+
+.brand__product {
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.shell__notice {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.roles {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-block: 10px;
+  border-top: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.roles__label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.roles__list {
+  display: flex;
+  gap: 6px;
+}
+
+.roles__tab {
+  padding: 7px 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.roles__tab:hover {
+  background: var(--teal-tint);
+}
+
+.roles__tab--active,
+.roles__tab--active:hover {
+  background: var(--button);
+  color: var(--white);
+}
+
+.hero {
+  background: var(--teal);
+  color: var(--white);
+}
+
+.hero__inner {
+  display: grid;
+  gap: 8px;
+  padding-block: 32px;
+}
+
+.hero__eyebrow {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hero__title {
+  font-size: clamp(26px, 4vw, 36px);
+}
+
+.hero__summary {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 17px;
+  opacity: 0.95;
+}
+
+.shell__main {
+  flex: 1;
+  padding-block: 28px 48px;
+}
+
+.shell__footer {
+  padding-block: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .shell__bar,
+  .roles,
+  .hero__inner,
+  .shell__main,
+  .shell__footer {
+    padding-inline: 16px;
+  }
+
+  .brand__product,
+  .shell__notice {
+    display: none;
+  }
+}
