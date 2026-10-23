@@ -1,3 +1,4 @@
+import type { RoleId } from '../roles'
 import type { Person } from './types'
 
 // Fictional demo personas. Quality assurance reports to the Board's Audit and Risk Committee,
@@ -12,6 +13,14 @@ export const PEOPLE: Person[] = [
 ]
 
 export const SYSTEM_ACTOR = 'system'
+
+/** Who is acting when a role takes an action */
+export const DEFAULT_PERSON: Record<RoleId, string> = {
+  operator: 'p-aisyah',
+  cgo: 'p-rachel',
+  board: 'p-helen',
+  moh: 'p-moh',
+}
 
 export function getPerson(id: string): Person | undefined {
   return PEOPLE.find((p) => p.id === id)

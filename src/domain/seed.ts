@@ -1,6 +1,7 @@
 import type { AppState, Tank } from './types'
 
-export const STATE_VERSION = 1
+// Bump when the shape of AppState changes, so browsers holding old data reload the seed
+export const STATE_VERSION = 2
 
 // Demo starts on a Monday morning, Singapore time
 const START = '2026-10-26T09:00:00+08:00'
@@ -31,6 +32,11 @@ function tank(
     // Tanks are serviced every 90 days
     nextServiceDue: daysFrom(START, 90 - lastServicedDaysAgo),
     probeVerified: serviceStatus !== 'servicing',
+    // Deterministic wobble so every reset starts from the same chart
+    history:
+      serviceStatus === 'not_in_use'
+        ? []
+        : Array.from({ length: 30 }, (_, i) => Math.round((tempC + Math.sin(i * 0.7 + n) * 0.4) * 10) / 10),
   }
 }
 

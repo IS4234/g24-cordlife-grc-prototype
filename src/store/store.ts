@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { createSeedState, STATE_VERSION } from '../domain/seed'
-import type { AppState, AuditEntry } from '../domain/types'
+import type { AppState } from '../domain/types'
 
 // All reads and writes go through this module, so swapping browser storage
 // for a hosted database later only changes this file.
@@ -51,16 +51,6 @@ export function resetDemo() {
   state = createSeedState()
   save(state)
   emit()
-}
-
-/** Appends an audit entry. The log is append-only: there is no update or delete. */
-export function withAudit(s: AppState, entry: Omit<AuditEntry, 'id' | 'at'> & { at?: string }): AppState {
-  const id = `AUD-${String(s.nextAuditSeq).padStart(4, '0')}`
-  return {
-    ...s,
-    audit: [...s.audit, { ...entry, id, at: entry.at ?? s.simTime }],
-    nextAuditSeq: s.nextAuditSeq + 1,
-  }
 }
 
 function subscribe(listener: Listener) {

@@ -14,6 +14,10 @@ export interface Tank {
   nextServiceDue: string
   /** False after maintenance until the probe-to-tank mapping is verified */
   probeVerified: boolean
+  /** Recent readings, one per simulated minute, oldest first */
+  history: number[]
+  /** Demo-only fault injected by the simulator */
+  fault?: 'warming'
 }
 
 export type Severity = 'minor' | 'major' | 'critical'
