@@ -85,9 +85,32 @@
   color: var(--text);
 }
 
-.shell__notice {
-  font-size: 12px;
+.shell__tools {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+  font-size: 14px;
+}
+
+.clock__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--muted);
+}
+
+.reset-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -185,7 +208,7 @@
   }
 
   .brand__product,
-  .shell__notice {
+  .clock__label {
     display: none;
   }
 }

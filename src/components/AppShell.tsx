@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react'
+import { formatDateTime } from '../lib/format'
 import { ROLES, getRole, type RoleId } from '../roles'
+import { useAppState } from '../store/store'
+import { ResetDemoButton } from './ResetDemoButton'
 import './AppShell.css'
 
 interface AppShellProps {
@@ -10,6 +13,7 @@ interface AppShellProps {
 
 export function AppShell({ role, onRoleChange, children }: AppShellProps) {
   const current = getRole(role)
+  const { simTime } = useAppState()
 
   return (
     <div className="shell">
@@ -24,7 +28,13 @@ export function AppShell({ role, onRoleChange, children }: AppShellProps) {
             <span className="brand__word">cordlife</span>
             <span className="brand__product">Compliance Monitor</span>
           </div>
-          <span className="shell__notice">Prototype · IS4234 Group 24</span>
+          <div className="shell__tools">
+            <span className="clock" title="Simulated clock used for escalation deadlines">
+              <span className="clock__label">Sim time</span>
+              <span className="mono">{formatDateTime(simTime)}</span>
+            </span>
+            <ResetDemoButton />
+          </div>
         </div>
 
         <nav className="roles" aria-label="Switch role">
@@ -59,7 +69,7 @@ export function AppShell({ role, onRoleChange, children }: AppShellProps) {
       <main className="shell__main">{children}</main>
 
       <footer className="shell__footer">
-        Academic prototype for a case study. Not affiliated with or endorsed by Cordlife Group Limited. All data is
+        IS4234 Group 24. Academic prototype for a case study. Not affiliated with or endorsed by Cordlife Group Limited. All data is
         simulated.
       </footer>
     </div>
