@@ -7,6 +7,7 @@ import { DeviationDetail } from './DeviationDetail'
 import { DeviationTable } from './DeviationTable'
 import { Drawer } from './Drawer'
 import { NewDeviationForm } from './NewDeviationForm'
+import { SeverityLegend } from './Severity'
 import './DeviationRegister.css'
 
 type Filter = 'active' | 'closed' | 'all'
@@ -71,6 +72,8 @@ export function DeviationRegister({ role, actorId, canRaise }: DeviationRegister
           )}
         </div>
       </div>
+
+      <SeverityLegend settings={state.settings} />
 
       <DeviationTable deviations={visible} now={state.simTime} onSelect={setSelectedId} />
 

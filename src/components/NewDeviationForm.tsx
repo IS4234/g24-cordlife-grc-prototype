@@ -3,7 +3,7 @@ import { atLeast, severityForManual } from '../domain/rules'
 import type { DeviationCategory, Severity, Tank } from '../domain/types'
 import { CATEGORY_LABEL, SEVERITY } from '../lib/labels'
 import { raiseDeviation } from '../store/actions'
-import { Pill } from './Pill'
+import { SeverityPill } from './Severity'
 
 interface NewDeviationFormProps {
   tanks: Tank[]
@@ -114,7 +114,7 @@ export function NewDeviationForm({ tanks, actorId, onDone }: NewDeviationFormPro
 
       <div className="rule-box">
         <span>Minimum severity by rule:</span>
-        <Pill tone={SEVERITY[minimum].tone}>{SEVERITY[minimum].label}</Pill>
+        <SeverityPill severity={minimum} />
       </div>
 
       <label className="field">

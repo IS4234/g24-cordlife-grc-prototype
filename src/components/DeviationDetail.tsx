@@ -4,11 +4,12 @@ import { levelsAbove } from '../domain/escalation'
 import { PEOPLE, personName } from '../domain/people'
 import type { AppState, Deviation, EscalationLevel } from '../domain/types'
 import { formatDateTime, formatDue } from '../lib/format'
-import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL, SEVERITY } from '../lib/labels'
+import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL } from '../lib/labels'
 import type { RoleId } from '../roles'
 import { assignDeviation, escalateDeviation } from '../store/actions'
 import { ApprovalPanel, ChangeRequestPanel, PendingChangePanel, SubmitClosurePanel } from './ClosurePanels'
 import { Pill } from './Pill'
+import { SeverityPill } from './Severity'
 import './DeviationDetail.css'
 
 interface DeviationDetailProps {
@@ -27,7 +28,7 @@ export function DeviationDetail({ deviation: d, state, role, actorId }: Deviatio
   return (
     <>
       <div className="detail__pills">
-        <Pill tone={SEVERITY[d.severity].tone}>{SEVERITY[d.severity].label}</Pill>
+        <SeverityPill severity={d.severity} />
         <Pill tone={DEVIATION_STATUS[d.status].tone}>{DEVIATION_STATUS[d.status].label}</Pill>
         {d.dismissed && <Pill tone="neutral">Dismissed</Pill>}
         {d.pendingChange && <Pill tone="warn">Change requested</Pill>}

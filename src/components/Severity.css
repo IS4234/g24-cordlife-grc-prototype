@@ -1,0 +1,45 @@
+.sev-icon {
+  flex: none;
+}
+
+.sev-legend {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.sev-legend__item {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 6px;
+  padding: 12px 14px;
+}
+
+.sev-legend__item + .sev-legend__item {
+  border-left: 1px solid var(--border);
+}
+
+.sev-legend__meaning,
+.sev-legend__rule {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.sev-legend__rule {
+  color: var(--muted);
+}
+
+@media (max-width: 720px) {
+  .sev-legend {
+    grid-template-columns: 1fr;
+  }
+
+  .sev-legend__item + .sev-legend__item {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}

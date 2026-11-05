@@ -1,12 +1,11 @@
 import { DeviationRegister } from '../components/DeviationRegister'
 import { KpiRow, KpiTile } from '../components/KpiTile'
-import { Pill } from '../components/Pill'
+import { SeverityPill } from '../components/Severity'
 import { TankCard } from '../components/TankCard'
 import { activeSensorDeviation, isActive } from '../domain/deviations'
 import { DEFAULT_PERSON } from '../domain/people'
 import { isMonitored, tempStatus } from '../domain/rules'
 import { formatDateTime } from '../lib/format'
-import { SEVERITY } from '../lib/labels'
 import { restoreCooling } from '../store/actions'
 import { useAppState } from '../store/store'
 import './OperatorView.css'
@@ -37,7 +36,7 @@ export function OperatorView() {
         <section className="alerts" aria-label="Critical alerts">
           {alerts.map((d) => (
             <div key={d.id} className="alert" role="alert">
-              <Pill tone={SEVERITY[d.severity].tone}>{SEVERITY[d.severity].label}</Pill>
+              <SeverityPill severity={d.severity} />
               <span className="alert__text">
                 <span className="mono">{d.id}</span> {d.title}
               </span>

@@ -11,7 +11,7 @@ export function formatDateTime(iso: string): string {
   return dateTime.format(new Date(iso))
 }
 
-function formatSpan(minutes: number): string {
+export function formatSpan(minutes: number): string {
   if (minutes < 60) return `${minutes} min`
   if (minutes < 48 * 60) {
     const h = Math.floor(minutes / 60)

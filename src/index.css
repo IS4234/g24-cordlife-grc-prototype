@@ -20,6 +20,8 @@
   --warn-tint: #fff4e0;
   --crit: #c62828;
   --crit-tint: #fdecea;
+  --minor: #3f51a3;
+  --minor-tint: #eef0fa;
 
   --font: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Roboto Mono', ui-monospace, Menlo, monospace;

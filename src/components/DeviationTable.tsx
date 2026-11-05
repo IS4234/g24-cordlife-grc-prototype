@@ -1,8 +1,9 @@
 import { personName } from '../domain/people'
 import type { Deviation } from '../domain/types'
 import { formatDue } from '../lib/format'
-import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL, SEVERITY } from '../lib/labels'
+import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL } from '../lib/labels'
 import { Pill } from './Pill'
+import { SeverityPill } from './Severity'
 import './DeviationTable.css'
 
 interface DeviationTableProps {
@@ -50,7 +51,7 @@ export function DeviationTable({ deviations, now, onSelect }: DeviationTableProp
                   </span>
                 </td>
                 <td>
-                  <Pill tone={SEVERITY[d.severity].tone}>{SEVERITY[d.severity].label}</Pill>
+                  <SeverityPill severity={d.severity} />
                 </td>
                 <td>
                   {d.dismissed ? (

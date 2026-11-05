@@ -41,3 +41,12 @@
   background: var(--teal-tint);
   color: var(--teal-dark);
 }
+
+.pill--minor {
+  background: var(--minor-tint);
+  color: var(--minor);
+}
+
+.pill--icon::before {
+  content: none;
+}

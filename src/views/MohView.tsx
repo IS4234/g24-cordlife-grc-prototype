@@ -3,13 +3,14 @@ import { DeviationDetail } from '../components/DeviationDetail'
 import { Drawer } from '../components/Drawer'
 import { KpiRow, KpiTile } from '../components/KpiTile'
 import { Pill } from '../components/Pill'
+import { SeverityPill } from '../components/Severity'
 import { isActive } from '../domain/deviations'
 import { computeKris } from '../domain/kri'
 import { DEFAULT_PERSON, personName } from '../domain/people'
 import { computePosture, type Rating } from '../domain/posture'
 import type { DeviationCategory } from '../domain/types'
 import { formatDateTime } from '../lib/format'
-import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL, SEVERITY, type Tone } from '../lib/labels'
+import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL, type Tone } from '../lib/labels'
 import { acknowledgeMohAlert } from '../store/actions'
 import { useAppState } from '../store/store'
 import './MohView.css'
@@ -111,7 +112,7 @@ export function MohView() {
                 <li key={d.id} className={active ? 'alert-card alert-card--active' : 'alert-card'}>
                   <div className="alert-card__top">
                     <span className="mono alert-card__id">{d.id}</span>
-                    <Pill tone={SEVERITY[d.severity].tone}>{SEVERITY[d.severity].label}</Pill>
+                    <SeverityPill severity={d.severity} />
                     {d.dismissed ? (
                       <Pill tone="neutral">Dismissed</Pill>
                     ) : (

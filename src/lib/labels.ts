@@ -9,7 +9,7 @@ export const CATEGORY_LABEL: Record<DeviationCategory, string> = {
   other: 'Other',
 }
 
-export type Tone = 'ok' | 'warn' | 'crit' | 'neutral' | 'brand'
+export type Tone = 'ok' | 'warn' | 'crit' | 'neutral' | 'brand' | 'minor'
 
 export const SERVICE_LABEL: Record<ServiceStatus, string> = {
   in_service: 'In service',
@@ -18,17 +18,30 @@ export const SERVICE_LABEL: Record<ServiceStatus, string> = {
   not_in_use: 'Not in use',
 }
 
-export const TEMP_STATUS: Record<TempStatus, { label: string; tone: Tone }> = {
+export const TEMP_STATUS: Record<TempStatus, { label: string; tone: 'ok' | 'warn' | 'crit' | 'neutral' }> = {
   ok: { label: 'Within limit', tone: 'ok' },
   warning: { label: 'Warning', tone: 'warn' },
   breach: { label: 'Breach', tone: 'crit' },
   offline: { label: 'Not monitored', tone: 'neutral' },
 }
 
-export const SEVERITY: Record<Severity, { label: string; tone: Tone }> = {
-  critical: { label: 'Critical', tone: 'crit' },
-  major: { label: 'Major', tone: 'warn' },
-  minor: { label: 'Minor', tone: 'neutral' },
+// Meanings mirror the severity rules in domain/rules.ts
+export const SEVERITY: Record<Severity, { label: string; tone: Tone; meaning: string }> = {
+  critical: {
+    label: 'Critical',
+    tone: 'crit',
+    meaning: 'Stored cord blood units are at risk, e.g. a storage or freezing failure affecting units.',
+  },
+  major: {
+    label: 'Major',
+    tone: 'warn',
+    meaning: 'Could affect units or quality, e.g. a supplier defect, or a storage issue with no units yet affected.',
+  },
+  minor: {
+    label: 'Minor',
+    tone: 'minor',
+    meaning: 'No units affected. An equipment or process gap to record and fix.',
+  },
 }
 
 export const DEVIATION_STATUS: Record<DeviationStatus, { label: string; tone: Tone }> = {

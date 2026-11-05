@@ -34,7 +34,7 @@ export function TankCard({ tank, settings, deviation, onRestore }: TankCardProps
         <span className="tank__limit">limit {settings.thresholdC} °C</span>
       </div>
 
-      <Sparkline values={tank.history} thresholdC={settings.thresholdC} tone={tone === 'brand' ? 'ok' : tone} />
+      <Sparkline values={tank.history} thresholdC={settings.thresholdC} tone={tone} />
 
       <dl className="tank__facts">
         <div>
