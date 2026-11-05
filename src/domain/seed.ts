@@ -3,7 +3,7 @@ import { ln2BaselineFor } from './simulation'
 import type { AppState, Tank } from './types'
 
 // Bump when the shape of AppState changes, so browsers holding old data reload the seed
-export const STATE_VERSION = 7
+export const STATE_VERSION = 8
 
 // Demo starts on a Monday morning, Singapore time
 const START = '2026-10-26T09:00:00+08:00'

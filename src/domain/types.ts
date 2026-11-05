@@ -34,6 +34,7 @@ export type SensorTrigger =
   | 'probe_unverified'
   | 'service_overdue'
   | 'ln2_low'
+  | 'temp_warning'
   | 'calibration_overdue'
 
 export type DeviationStatus = 'open' | 'investigating' | 'escalated' | 'pending_closure' | 'closed'

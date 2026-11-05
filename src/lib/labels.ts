@@ -72,5 +72,6 @@ export const TRIGGER_LABEL: Record<SensorTrigger, string> = {
   probe_unverified: 'probe not verified',
   service_overdue: 'service overdue',
   ln2_low: 'LN2 level low',
+  temp_warning: 'temperature warning',
   calibration_overdue: 'calibration overdue',
 }

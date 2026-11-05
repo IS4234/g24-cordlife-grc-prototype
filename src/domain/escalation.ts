@@ -41,6 +41,24 @@ function escalate(s: AppState, d: Deviation, to: EscalationLevel, actorId: strin
   return next
 }
 
+/**
+ * When a deviation already at the Board or MOH becomes severe enough to report (for example a
+ * storage incident upgraded to critical), MOH is told straight away rather than at the next escalation.
+ */
+export function notifyMohIfDue(s: AppState, id: string): AppState {
+  const d = s.deviations.find((x) => x.id === id)
+  if (!d || d.mohNotifiedAt || !isActive(d)) return s
+  if (d.escalationLevel !== 'board' && d.escalationLevel !== 'moh') return s
+  if (!atLeast(d.severity, s.settings.mohNotifySeverity)) return s
+  const next = updateDeviation(s, id, (cur) => ({ ...cur, mohNotifiedAt: s.simTime }))
+  return withAudit(next, {
+    actorId: SYSTEM_ACTOR,
+    action: 'deviation.moh_notified',
+    entityId: id,
+    detail: `Pushed to MOH: deviation became ${d.severity} while at ${LEVEL_LABEL[d.escalationLevel]}.`,
+  })
+}
+
 /** Runs every simulated minute. A missed deadline moves the deviation up one level. */
 export function applyDeadlines(s: AppState): AppState {
   let next = s
