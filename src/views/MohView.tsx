@@ -6,10 +6,11 @@ import { KpiRow, KpiTile } from '../components/KpiTile'
 import { Pill } from '../components/Pill'
 import { SeverityPill } from '../components/Severity'
 import { isActive, sortForRegister } from '../domain/deviations'
+import { describeExcursion, excursionSummary } from '../domain/excursion'
 import { computeKris } from '../domain/kri'
 import { DEFAULT_PERSON, personName } from '../domain/people'
 import { computePosture, type Rating } from '../domain/posture'
-import { atLeast } from '../domain/rules'
+import { atLeast, BREACH_LIMIT_C } from '../domain/rules'
 import type { DeviationCategory, Severity } from '../domain/types'
 import { formatDateTime } from '../lib/format'
 import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL, type Tone } from '../lib/labels'
@@ -124,6 +125,7 @@ export function MohView() {
           <ul className="alert-feed">
             {alerts.map((d) => {
               const active = isActive(d)
+              const excursion = excursionSummary(d, state.simTime)
               return (
                 <li key={d.id} className={active ? 'alert-card alert-card--active' : 'alert-card'}>
                   <div className="alert-card__top">
@@ -153,6 +155,12 @@ export function MohView() {
                       <dt>Acknowledged</dt>
                       <dd className="mono">{d.mohAcknowledgedAt ? formatDateTime(d.mohAcknowledgedAt) : 'Not yet'}</dd>
                     </div>
+                    {excursion && (
+                      <div className="alert-card__wide">
+                        <dt>Time above {BREACH_LIMIT_C} °C</dt>
+                        <dd className={excursion.ongoing ? 'alert-card__live' : undefined}>{describeExcursion(excursion)}</dd>
+                      </div>
+                    )}
                   </dl>
                   <div className="alert-card__actions">
                     {!d.mohAcknowledgedAt && (

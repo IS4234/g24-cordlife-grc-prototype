@@ -1,6 +1,7 @@
 import { personName } from '../domain/people'
+import { excursionSummary } from '../domain/excursion'
 import type { Deviation } from '../domain/types'
-import { formatDue } from '../lib/format'
+import { formatDue, formatSpan } from '../lib/format'
 import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL } from '../lib/labels'
 import { Pill } from './Pill'
 import { SeverityPill } from './Severity'
@@ -48,6 +49,7 @@ export function DeviationTable({ deviations, now, onSelect }: DeviationTableProp
                     {CATEGORY_LABEL[d.category]}
                     {d.tankId && ` · ${d.tankId}`}
                     {d.source === 'sensor' && ' · auto-raised'}
+                    <ExcursionNote deviation={d} now={now} />
                   </span>
                 </td>
                 <td>
@@ -77,5 +79,16 @@ export function DeviationTable({ deviations, now, onSelect }: DeviationTableProp
         </tbody>
       </table>
     </div>
+  )
+}
+
+function ExcursionNote({ deviation, now }: { deviation: Deviation; now: string }) {
+  const x = excursionSummary(deviation, now)
+  if (!x) return null
+  return (
+    <span className={x.ongoing ? 'dev-table__excursion dev-table__excursion--live' : 'dev-table__excursion'}>
+      {' · '}
+      {formatSpan(x.minutes)} above limit{x.ongoing ? ' (ongoing)' : ''}
+    </span>
   )
 }

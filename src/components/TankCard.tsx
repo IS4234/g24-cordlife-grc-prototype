@@ -1,7 +1,8 @@
 import type { MouseEvent } from 'react'
+import { excursionSummary } from '../domain/excursion'
 import { BREACH_LIMIT_C, isInService, isOverdue, LN2_LOW_PCT, tempStatus } from '../domain/rules'
 import type { Deviation, RiskSettings, Tank } from '../domain/types'
-import { formatDateTime } from '../lib/format'
+import { formatDateTime, formatSpan } from '../lib/format'
 import { SERVICE_LABEL, TEMP_STATUS, TRIGGER_LABEL } from '../lib/labels'
 import { Pill } from './Pill'
 import { Sparkline } from './Sparkline'
@@ -27,6 +28,12 @@ export function Ln2Bar({ level, wide }: { level: number; wide?: boolean }) {
       <span style={{ width: `${Math.max(0, Math.min(100, level))}%` }} />
     </span>
   )
+}
+
+function excursionText(d: Deviation, now: string): string {
+  const x = excursionSummary(d, now)
+  if (!x) return ''
+  return x.ongoing ? ` · above limit for ${formatSpan(x.minutes)}` : ` · ${formatSpan(x.minutes)} above limit`
 }
 
 // Buttons inside the card act on their own, without also opening the detail drawer
@@ -96,6 +103,7 @@ export function TankCard(props: TankCardProps) {
       {deviations.map((d) => (
         <p key={d.id} className={`tank__note tank__note--${d.severity === 'critical' ? 'crit' : 'warn'}`}>
           <span className="mono">{d.id}</span> raised automatically: {TRIGGER_LABEL[d.trigger ?? 'breach']}
+          {excursionText(d, now)}
         </p>
       ))}
       {(tank.fault || tank.serviceStatus === 'servicing') && (

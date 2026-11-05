@@ -1,4 +1,4 @@
-import { formatDateTime } from '../lib/format'
+import { formatDateTime, formatSpan } from '../lib/format'
 import { SERVICE_LABEL, SEVERITY, TRIGGER_LABEL } from '../lib/labels'
 import { withAudit } from './audit'
 import { activeSensorDeviation, activeSensorDeviations, createDeviation, type NewDeviation, updateDeviation } from './deviations'
@@ -164,11 +164,57 @@ function checkStorage(s: AppState, tank: Tank): AppState {
   return STAGE_TRIGGERS.indexOf(stage.trigger) > reached ? upgrade(s, open.id, stage.trigger, stage.finding) : s
 }
 
+/** Records when an open storage incident's tank goes above the breach limit, its peak, and when it comes back */
+function trackExcursion(s: AppState, tank: Tank): AppState {
+  const open = activeSensorDeviations(s, tank.id).find((d) => STAGE_TRIGGERS.includes(d.trigger ?? 'breach'))
+  if (!open) return s
+  const above = isMonitored(tank) && tank.tempC > BREACH_LIMIT_C
+  const list = open.excursions ?? []
+  const last = list[list.length - 1]
+  const running = last !== undefined && !last.endedAt
+
+  if (above && !running) {
+    const next = updateDeviation(s, open.id, (d) => ({
+      ...d,
+      excursions: [...list, { startedAt: s.simTime, peakC: tank.tempC }],
+    }))
+    // The first excursion is already logged when the incident reaches the breach stage
+    if (list.length === 0) return next
+    return withAudit(next, {
+      actorId: SYSTEM_ACTOR,
+      action: 'deviation.excursion_started',
+      entityId: open.id,
+      detail: `${tank.id} back above ${BREACH_LIMIT_C} °C at ${tank.tempC} °C.`,
+    })
+  }
+  if (above && running) {
+    if (tank.tempC <= last.peakC) return s
+    return updateDeviation(s, open.id, (d) => ({
+      ...d,
+      excursions: list.map((e, i) => (i === list.length - 1 ? { ...e, peakC: tank.tempC } : e)),
+    }))
+  }
+  if (!above && running) {
+    const minutes = Math.round((new Date(s.simTime).getTime() - new Date(last.startedAt).getTime()) / 60_000)
+    const next = updateDeviation(s, open.id, (d) => ({
+      ...d,
+      excursions: list.map((e, i) => (i === list.length - 1 ? { ...e, endedAt: s.simTime } : e)),
+    }))
+    return withAudit(next, {
+      actorId: SYSTEM_ACTOR,
+      action: 'deviation.excursion_ended',
+      entityId: open.id,
+      detail: `${tank.id} back below ${BREACH_LIMIT_C} °C after ${formatSpan(minutes)} above the limit. Peak ${last.peakC.toFixed(1)} °C.`,
+    })
+  }
+  return s
+}
+
 /** Raises at most one open deviation per tank per condition, and one per storage incident */
 export function detectTankIssues(s: AppState): AppState {
   let next = s
   for (const tank of s.tanks) {
-    next = checkStorage(next, tank)
+    next = trackExcursion(checkStorage(next, tank), tank)
     for (const [trigger, check] of Object.entries(CHECKS) as [SensorTrigger, Check][]) {
       const finding = check(tank, next)
       if (!finding || activeSensorDeviation(next, tank.id, trigger)) continue

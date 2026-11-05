@@ -110,3 +110,8 @@
   border: 1px dashed var(--border);
   border-radius: var(--radius);
 }
+
+.dev-table__excursion--live {
+  color: var(--crit);
+  font-weight: 500;
+}

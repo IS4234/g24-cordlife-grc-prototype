@@ -59,6 +59,14 @@ export interface ChangeRequest {
   at: string
 }
 
+/** One stretch of time a tank spent above the breach limit */
+export interface Excursion {
+  startedAt: string
+  /** Missing while the tank is still above the limit */
+  endedAt?: string
+  peakC: number
+}
+
 export interface Deviation {
   id: string
   title: string
@@ -91,6 +99,8 @@ export interface Deviation {
   /** Set when the deviation is pushed to the regulator */
   mohNotifiedAt?: string
   mohAcknowledgedAt?: string
+  /** For storage incidents, each time the tank went above the breach limit */
+  excursions?: Excursion[]
 }
 
 export interface AuditEntry {

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { isActive } from '../domain/deviations'
 import { levelsAbove } from '../domain/escalation'
+import { describeExcursion, excursionSummary } from '../domain/excursion'
+import { BREACH_LIMIT_C } from '../domain/rules'
 import { PEOPLE, personName } from '../domain/people'
 import type { AppState, Deviation, EscalationLevel } from '../domain/types'
 import { formatDateTime, formatDue } from '../lib/format'
@@ -24,6 +26,7 @@ export function DeviationDetail({ deviation: d, state, role, actorId }: Deviatio
   const governs = role === 'cgo' || role === 'board'
   const due = formatDue(d.dueAt, state.simTime)
   const timeline = state.audit.filter((a) => a.entityId === d.id).reverse()
+  const excursion = excursionSummary(d, state.simTime)
 
   return (
     <>
@@ -54,6 +57,9 @@ export function DeviationDetail({ deviation: d, state, role, actorId }: Deviatio
             value={`${formatDateTime(d.dueAt)} (${due.text})`}
             late={due.overdue}
           />
+        )}
+        {excursion && (
+          <Fact label={`Time above ${BREACH_LIMIT_C} °C`} value={describeExcursion(excursion)} late={excursion.ongoing} />
         )}
         {d.closedAt && <Fact label="Closed" value={formatDateTime(d.closedAt)} />}
       </dl>
