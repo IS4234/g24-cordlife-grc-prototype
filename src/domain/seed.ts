@@ -1,7 +1,9 @@
+import { CALIBRATION_INTERVAL_DAYS } from './rules'
+import { ln2BaselineFor } from './simulation'
 import type { AppState, Tank } from './types'
 
 // Bump when the shape of AppState changes, so browsers holding old data reload the seed
-export const STATE_VERSION = 6
+export const STATE_VERSION = 7
 
 // Demo starts on a Monday morning, Singapore time
 const START = '2026-10-26T09:00:00+08:00'
@@ -21,8 +23,11 @@ function tank(
   serviceStatus: Tank['serviceStatus'],
   lastServicedDaysAgo: number,
 ): Tank {
+  const id = `T-${String(n).padStart(2, '0')}`
+  // Spread calibrations across the year so they do not all fall due together
+  const lastCalibratedAt = daysFrom(START, -(20 + ((n * 53) % 300)))
   return {
-    id: `T-${String(n).padStart(2, '0')}`,
+    id,
     location: n <= 6 ? 'Cryo Room A' : 'Cryo Room B',
     capacity: 6000,
     cbuCount,
@@ -32,6 +37,9 @@ function tank(
     // Tanks are serviced every 90 days
     nextServiceDue: daysFrom(START, 90 - lastServicedDaysAgo),
     probeVerified: serviceStatus !== 'servicing',
+    ln2LevelPct: serviceStatus === 'not_in_use' ? 0 : ln2BaselineFor(id),
+    lastCalibratedAt,
+    calibrationDue: daysFrom(lastCalibratedAt, CALIBRATION_INTERVAL_DAYS),
     // Deterministic wobble so every reset starts from the same chart
     history:
       serviceStatus === 'not_in_use'
@@ -44,9 +52,15 @@ export function createSeedState(): AppState {
   const tanks: Tank[] = [
     tank(1, 5420, -191.2, 'in_service', 40),
     tank(2, 5810, -189.8, 'in_service', 12),
-    tank(3, 4975, -190.5, 'in_service', 63),
+    // Calibration falls due six hours into the demo, so running the feed shows the overdue-calibration rule
+    {
+      ...tank(3, 4975, -190.5, 'in_service', 63),
+      lastCalibratedAt: minutesFrom(START, 6 * 60 - CALIBRATION_INTERVAL_DAYS * 1440),
+      calibrationDue: minutesFrom(START, 6 * 60),
+    },
     tank(4, 5230, -188.9, 'due_service', 86),
-    tank(5, 5660, -192.0, 'in_service', 25),
+    // Recalibrated after DEV-2026-003
+    { ...tank(5, 5660, -192.0, 'in_service', 25), lastCalibratedAt: daysFrom(START, -8), calibrationDue: daysFrom(START, CALIBRATION_INTERVAL_DAYS - 8) },
     tank(6, 3120, -190.1, 'in_service', 51),
     tank(7, 5890, -187.6, 'in_service', 70),
     // Due two hours into the demo, so running the feed shows an overdue-service deviation

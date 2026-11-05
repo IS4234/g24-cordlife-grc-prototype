@@ -11,6 +11,18 @@ export function formatDateTime(iso: string): string {
   return dateTime.format(new Date(iso))
 }
 
+const dateWithYear = new Intl.DateTimeFormat('en-SG', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'Asia/Singapore',
+})
+
+/** For dates that can be a year or more apart, such as calibrations */
+export function formatDate(iso: string): string {
+  return dateWithYear.format(new Date(iso))
+}
+
 export function formatSpan(minutes: number): string {
   if (minutes < 60) return `${minutes} min`
   if (minutes < 48 * 60) {

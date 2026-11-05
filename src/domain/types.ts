@@ -16,14 +16,25 @@ export interface Tank {
   probeVerified: boolean
   /** Recent readings, one per simulated minute, oldest first */
   history: number[]
-  /** Demo-only fault injected by the simulator */
-  fault?: 'warming'
+  /** Liquid nitrogen fill level, 0 to 100 */
+  ln2LevelPct: number
+  lastCalibratedAt: string
+  /** Probes are calibrated against a reference thermometer once a year */
+  calibrationDue: string
+  /** Demo-only fault injected by the simulator: the LN2 supply stops refilling the tank */
+  fault?: 'ln2_failure'
 }
 
 export type Severity = 'minor' | 'major' | 'critical'
 
 /** The tank condition that made the system raise a deviation */
-export type SensorTrigger = 'breach' | 'unmonitored_units' | 'probe_unverified' | 'service_overdue'
+export type SensorTrigger =
+  | 'breach'
+  | 'unmonitored_units'
+  | 'probe_unverified'
+  | 'service_overdue'
+  | 'ln2_low'
+  | 'calibration_overdue'
 
 export type DeviationStatus = 'open' | 'investigating' | 'escalated' | 'pending_closure' | 'closed'
 

@@ -10,7 +10,7 @@ import {
 } from '../domain/closure'
 import { createDeviation, type NewDeviation } from '../domain/deviations'
 import { acknowledgeAlert, assignOwner, escalateManually } from '../domain/escalation'
-import { addMinutes } from '../domain/rules'
+import { addMinutes, CALIBRATION_INTERVAL_DAYS } from '../domain/rules'
 import { advanceMinutes } from '../domain/simulation'
 import { detectTankIssues } from '../domain/tankChecks'
 import { updateSettings } from '../domain/settings'
@@ -67,11 +67,11 @@ export function advanceClock(minutes: number) {
   setState((s) => advanceMinutes(s, minutes))
 }
 
-/** Demo control: makes a tank start warming, as if LN2 supply failed. Not audited, since it is not a real event. */
+/** Demo control: cuts a tank's LN2 supply, so it drains and then warms. Not audited, since it is not a real event. */
 export function injectWarmingFault(tankId: string) {
   setState((s) => ({
     ...s,
-    tanks: s.tanks.map((t) => (t.id === tankId ? { ...t, fault: 'warming' } : t)),
+    tanks: s.tanks.map((t) => (t.id === tankId ? { ...t, fault: 'ln2_failure' } : t)),
   }))
 }
 
@@ -83,7 +83,7 @@ export function restoreCooling(tankId: string, personId: string) {
         actorId: personId,
         action: 'tank.cooling_restored',
         entityId: tankId,
-        detail: `${tankId} LN2 supply restored; temperature recovering. Any linked deviation stays open for investigation.`,
+        detail: `${tankId} LN2 supply restored; tank refilling and temperature recovering. Any linked deviation stays open for investigation.`,
       },
     ),
   )
@@ -138,4 +138,23 @@ export function returnTankToService(tankId: string, personId: string) {
 /** Demo control: units placed in a tank that is not being monitored. Not audited, since it is not a real event. */
 export function injectUnmonitoredUnits(tankId: string) {
   setState((s) => detectTankIssues(updateTank(s, tankId, (t) => ({ ...t, cbuCount: 420 }))))
+}
+
+/** Records a probe calibration against a reference thermometer */
+export function recordCalibration(tankId: string, personId: string) {
+  setState((s) =>
+    withAudit(
+      updateTank(s, tankId, (t) => ({
+        ...t,
+        lastCalibratedAt: s.simTime,
+        calibrationDue: addMinutes(s.simTime, CALIBRATION_INTERVAL_DAYS * 1440),
+      })),
+      {
+        actorId: personId,
+        action: 'tank.probe_calibrated',
+        entityId: tankId,
+        detail: `${tankId} probe calibrated against a reference thermometer. Next calibration due in ${CALIBRATION_INTERVAL_DAYS} days.`,
+      },
+    ),
+  )
 }

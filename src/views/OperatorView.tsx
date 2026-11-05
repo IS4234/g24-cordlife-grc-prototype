@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { DeviationRegister } from '../components/DeviationRegister'
+import { Drawer } from '../components/Drawer'
 import { KpiRow, KpiTile } from '../components/KpiTile'
 import { SeverityPill } from '../components/Severity'
 import { TankCard } from '../components/TankCard'
+import { TankDetail } from '../components/TankDetail'
 import { activeSensorDeviations, isActive } from '../domain/deviations'
 import { DEFAULT_PERSON } from '../domain/people'
 import { BREACH_LIMIT_C, isMonitored, tempStatus } from '../domain/rules'
@@ -13,6 +16,8 @@ import './OperatorView.css'
 export function OperatorView() {
   const state = useAppState()
   const { tanks, settings, deviations } = state
+  const [openTankId, setOpenTankId] = useState<string | null>(null)
+  const openTank = tanks.find((t) => t.id === openTankId)
 
   const monitored = tanks.filter(isMonitored)
   const inLimit = monitored.filter((t) => tempStatus(t, settings) !== 'breach').length
@@ -64,12 +69,19 @@ export function OperatorView() {
               onRestore={() => restoreCooling(t.id, DEFAULT_PERSON.operator)}
               onVerifyProbe={() => verifyProbeMapping(t.id, DEFAULT_PERSON.operator)}
               onReturnToService={() => returnTankToService(t.id, DEFAULT_PERSON.operator)}
+              onOpen={() => setOpenTankId(t.id)}
             />
           ))}
         </div>
       </section>
 
       <DeviationRegister role="operator" actorId={DEFAULT_PERSON.operator} canRaise />
+
+      {openTank && (
+        <Drawer title={openTank.id} onClose={() => setOpenTankId(null)}>
+          <TankDetail tank={openTank} state={state} actorId={DEFAULT_PERSON.operator} />
+        </Drawer>
+      )}
     </div>
   )
 }

@@ -6,6 +6,12 @@ import type { DeviationCategory, RiskSettings, Severity, Tank } from './types'
  */
 export const BREACH_LIMIT_C = -150
 
+/** Below this LN2 level the tank must be refilled; the system raises a deviation */
+export const LN2_LOW_PCT = 25
+/** Below this LN2 level there is not enough nitrogen to hold vapour-phase temperature */
+export const LN2_EMPTY_PCT = 10
+export const CALIBRATION_INTERVAL_DAYS = 365
+
 export type TempStatus = 'ok' | 'warning' | 'breach' | 'offline'
 
 export function isInService(tank: Tank): boolean {

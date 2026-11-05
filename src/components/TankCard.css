@@ -1,4 +1,5 @@
 .tank {
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -184,5 +185,39 @@
 
 .tank__overdue {
   color: var(--crit);
+  font-weight: 500;
+}
+
+.tank:hover {
+  border-color: var(--teal);
+}
+
+.tank__open {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.tank__open:hover {
+  color: var(--teal-dark);
+  text-decoration: underline;
+}
+
+.tank__bar--wide {
+  width: 100%;
+  max-width: 280px;
+  height: 10px;
+  border-radius: 5px;
+}
+
+.tank__bar--low span {
+  background: var(--warn);
+}
+
+.tank__low {
+  color: var(--warn);
   font-weight: 500;
 }

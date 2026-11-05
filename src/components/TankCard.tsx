@@ -1,4 +1,5 @@
-import { BREACH_LIMIT_C, isInService, isOverdue, tempStatus } from '../domain/rules'
+import type { MouseEvent } from 'react'
+import { BREACH_LIMIT_C, isInService, isOverdue, LN2_LOW_PCT, tempStatus } from '../domain/rules'
 import type { Deviation, RiskSettings, Tank } from '../domain/types'
 import { formatDateTime } from '../lib/format'
 import { SERVICE_LABEL, TEMP_STATUS, TRIGGER_LABEL } from '../lib/labels'
@@ -15,18 +16,40 @@ interface TankCardProps {
   onRestore: () => void
   onVerifyProbe: () => void
   onReturnToService: () => void
+  onOpen: () => void
 }
 
-export function TankCard({ tank, settings, now, deviations, onRestore, onVerifyProbe, onReturnToService }: TankCardProps) {
+/** LN2 fill bar; turns amber below the refill level */
+export function Ln2Bar({ level, wide }: { level: number; wide?: boolean }) {
+  const low = level < LN2_LOW_PCT
+  return (
+    <span className={`tank__bar${wide ? ' tank__bar--wide' : ''}${low ? ' tank__bar--low' : ''}`} aria-hidden="true">
+      <span style={{ width: `${Math.max(0, Math.min(100, level))}%` }} />
+    </span>
+  )
+}
+
+// Buttons inside the card act on their own, without also opening the detail drawer
+const own = (fn: () => void) => (e: MouseEvent) => {
+  e.stopPropagation()
+  fn()
+}
+
+export function TankCard(props: TankCardProps) {
+  const { tank, settings, now, deviations, onRestore, onVerifyProbe, onReturnToService, onOpen } = props
   const status = tempStatus(tank, settings)
   const { label, tone } = TEMP_STATUS[status]
   const fill = Math.round((tank.cbuCount / tank.capacity) * 100)
 
   return (
-    <article className={`tank tank--${status}`}>
+    <article className={`tank tank--${status}`} onClick={onOpen}>
       <header className="tank__head">
         <div>
-          <h3 className="tank__id">{tank.id}</h3>
+          <h3 className="tank__id">
+            <button type="button" className="tank__open" onClick={own(onOpen)} aria-label={`${tank.id} details`}>
+              {tank.id}
+            </button>
+          </h3>
           <span className="tank__loc">{tank.location}</span>
         </div>
         <Pill tone={tone}>{label}</Pill>
@@ -51,6 +74,13 @@ export function TankCard({ tank, settings, now, deviations, onRestore, onVerifyP
           </dd>
         </div>
         <div>
+          <dt>LN2 level</dt>
+          <dd className={tank.serviceStatus !== 'not_in_use' && tank.ln2LevelPct < LN2_LOW_PCT ? 'tank__low' : undefined}>
+            <span className="mono">{Math.round(tank.ln2LevelPct)}%</span>
+            <Ln2Bar level={tank.ln2LevelPct} />
+          </dd>
+        </div>
+        <div>
           <dt>Service</dt>
           <dd>{SERVICE_LABEL[tank.serviceStatus]}</dd>
         </div>
@@ -71,17 +101,17 @@ export function TankCard({ tank, settings, now, deviations, onRestore, onVerifyP
       {(tank.fault || tank.serviceStatus === 'servicing') && (
         <div className="tank__actions">
           {tank.fault && (
-            <button type="button" className="btn btn--small" onClick={onRestore}>
+            <button type="button" className="btn btn--small" onClick={own(onRestore)}>
               Restore LN2 supply
             </button>
           )}
           {tank.serviceStatus === 'servicing' && !tank.probeVerified && (
-            <button type="button" className="btn btn--small" onClick={onVerifyProbe}>
+            <button type="button" className="btn btn--small" onClick={own(onVerifyProbe)}>
               Verify probe mapping
             </button>
           )}
           {tank.serviceStatus === 'servicing' && (
-            <button type="button" className="btn btn--ghost btn--small" onClick={onReturnToService}>
+            <button type="button" className="btn btn--ghost btn--small" onClick={own(onReturnToService)}>
               Return to service
             </button>
           )}

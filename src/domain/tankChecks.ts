@@ -2,7 +2,7 @@ import { formatDateTime } from '../lib/format'
 import { SERVICE_LABEL } from '../lib/labels'
 import { activeSensorDeviation, createDeviation, type NewDeviation } from './deviations'
 import { SYSTEM_ACTOR } from './people'
-import { BREACH_LIMIT_C, isInService, isOverdue, severityForBreach, tempStatus } from './rules'
+import { BREACH_LIMIT_C, isInService, isOverdue, LN2_LOW_PCT, severityForBreach, tempStatus } from './rules'
 import type { AppState, SensorTrigger, Tank } from './types'
 
 type Finding = Omit<NewDeviation, 'source' | 'raisedBy' | 'tankId' | 'trigger'>
@@ -55,6 +55,28 @@ const CHECKS: Record<SensorTrigger, (t: Tank, s: AppState) => Finding | undefine
           category: 'equipment',
           severity: t.cbuCount > 0 ? 'major' : 'minor',
           evidence: [`Service due ${t.nextServiceDue}; checked at ${s.simTime}`],
+        }
+      : undefined,
+
+  ln2_low: (t, s) =>
+    isInService(t) && t.ln2LevelPct < LN2_LOW_PCT
+      ? {
+          title: `${t.id} LN2 level low`,
+          description: `${t.id} LN2 level fell to ${Math.round(t.ln2LevelPct)}%, below the ${LN2_LOW_PCT}% refill level. If it is not refilled the tank will start to warm${t.cbuCount > 0 ? `, putting ${units(t)} at risk` : ''}.`,
+          category: 'equipment',
+          severity: t.cbuCount > 0 ? 'major' : 'minor',
+          evidence: [`LN2 level ${t.ln2LevelPct}% at ${s.simTime}`],
+        }
+      : undefined,
+
+  calibration_overdue: (t, s) =>
+    isInService(t) && isOverdue(t.calibrationDue, s.simTime)
+      ? {
+          title: `${t.id} probe calibration overdue`,
+          description: `${t.id} probe was due for calibration on ${formatDateTime(t.calibrationDue)}. Until it is calibrated its readings may drift without anyone noticing.`,
+          category: 'equipment',
+          severity: t.cbuCount > 0 ? 'major' : 'minor',
+          evidence: [`Calibration due ${t.calibrationDue}; checked at ${s.simTime}`],
         }
       : undefined,
 }

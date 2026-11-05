@@ -58,7 +58,7 @@ export function SimulationBar() {
           disabled={!selected}
           onClick={() => injectWarmingFault(selected)}
         >
-          Start warming
+          Cut LN2 supply
         </button>
       </div>
 
