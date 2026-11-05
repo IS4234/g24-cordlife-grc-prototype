@@ -106,7 +106,7 @@ export function TankCard(props: TankCardProps) {
           {excursionText(d, now)}
         </p>
       ))}
-      {(tank.fault || tank.serviceStatus === 'servicing') && (
+      {(tank.fault || tank.serviceStatus === 'servicing' || status === 'empty') && (
         <div className="tank__actions">
           {tank.fault && (
             <button type="button" className="btn btn--small" onClick={own(onRestore)}>
@@ -121,6 +121,11 @@ export function TankCard(props: TankCardProps) {
           {tank.serviceStatus === 'servicing' && (
             <button type="button" className="btn btn--ghost btn--small" onClick={own(onReturnToService)}>
               Return to service
+            </button>
+          )}
+          {status === 'empty' && (
+            <button type="button" className="btn btn--small" onClick={own(onOpen)}>
+              Load units
             </button>
           )}
         </div>

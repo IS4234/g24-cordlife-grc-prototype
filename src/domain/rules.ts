@@ -12,7 +12,7 @@ export const LN2_LOW_PCT = 25
 export const LN2_EMPTY_PCT = 10
 export const CALIBRATION_INTERVAL_DAYS = 365
 
-export type TempStatus = 'ok' | 'warning' | 'breach' | 'offline'
+export type TempStatus = 'ok' | 'warning' | 'breach' | 'empty' | 'offline'
 
 export function isInService(tank: Tank): boolean {
   return tank.serviceStatus === 'in_service' || tank.serviceStatus === 'due_service'
@@ -23,7 +23,17 @@ export function isMonitored(tank: Tank): boolean {
   return tank.cbuCount > 0 && isInService(tank)
 }
 
+/** Why units cannot be loaded into this tank right now, or nothing if they can */
+export function loadBlockReason(tank: Tank): string | undefined {
+  if (!isInService(tank)) return 'Units can only be loaded into a tank that is in service.'
+  if (!tank.probeVerified) return 'Verify the probe mapping first. Units must not go into a tank whose readings cannot be trusted.'
+  if (tank.cbuCount >= tank.capacity) return 'This tank is full.'
+  return undefined
+}
+
 export function tempStatus(tank: Tank, settings: RiskSettings): TempStatus {
+  // An empty tank in service is ready for units, not a monitoring gap
+  if (isInService(tank) && tank.cbuCount === 0) return 'empty'
   if (!isMonitored(tank)) return 'offline'
   if (tank.tempC > BREACH_LIMIT_C) return 'breach'
   if (tank.tempC > settings.warningC) return 'warning'

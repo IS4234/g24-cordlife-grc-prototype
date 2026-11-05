@@ -1,10 +1,11 @@
+import { useState } from 'react'
 import { sortForRegister } from '../domain/deviations'
 import { personName } from '../domain/people'
-import { BREACH_LIMIT_C, isInService, isOverdue, LN2_LOW_PCT, tempStatus } from '../domain/rules'
+import { BREACH_LIMIT_C, isInService, isOverdue, LN2_LOW_PCT, loadBlockReason, tempStatus } from '../domain/rules'
 import type { AppState, Tank } from '../domain/types'
 import { formatDate, formatDateTime } from '../lib/format'
 import { DEVIATION_STATUS, SERVICE_LABEL, TEMP_STATUS } from '../lib/labels'
-import { recordCalibration } from '../store/actions'
+import { loadUnits, recordCalibration } from '../store/actions'
 import { Ln2Bar } from './TankCard'
 import { Pill } from './Pill'
 import { SeverityPill } from './Severity'
@@ -39,6 +40,8 @@ export function TankDetail({ tank, state, actorId }: TankDetailProps) {
           value={`${tank.cbuCount.toLocaleString()} of ${tank.capacity.toLocaleString()}`}
         />
       </dl>
+
+      {tank.serviceStatus !== 'not_in_use' && <LoadUnitsForm key={tank.id} tank={tank} actorId={actorId} />}
 
       <section className="detail__section">
         <h4>Liquid nitrogen</h4>
@@ -130,5 +133,48 @@ function Fact({ label, value, late }: { label: string; value: string; late?: boo
       <dt>{label}</dt>
       <dd className={late ? 'detail__late' : undefined}>{value}</dd>
     </div>
+  )
+}
+
+function LoadUnitsForm({ tank, actorId }: { tank: Tank; actorId: string }) {
+  const spare = tank.capacity - tank.cbuCount
+  const [count, setCount] = useState(Math.min(500, spare))
+  const blocked = loadBlockReason(tank)
+  const valid = Number.isInteger(count) && count > 0 && count <= spare
+
+  return (
+    <section className="detail__section">
+      <h4>Load units</h4>
+      {blocked ? (
+        <p className="tank-detail__blocked">{blocked}</p>
+      ) : (
+        <form
+          className="tank-detail__load"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!valid) return
+            loadUnits(tank.id, count, actorId)
+            setCount(Math.min(500, spare - count))
+          }}
+        >
+          <label className="field">
+            Units to load
+            <span className="field__hint">Up to {spare.toLocaleString()} more fit in this tank.</span>
+            <input
+              id="load-units-count"
+              type="number"
+              min={1}
+              max={spare}
+              step={1}
+              value={count}
+              onChange={(e) => setCount(Number(e.target.value))}
+            />
+          </label>
+          <button type="submit" className="btn btn--small" disabled={!valid}>
+            Load units
+          </button>
+        </form>
+      )}
+    </section>
   )
 }

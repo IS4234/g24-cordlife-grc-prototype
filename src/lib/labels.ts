@@ -29,6 +29,7 @@ export const TEMP_STATUS: Record<TempStatus, { label: string; tone: 'ok' | 'warn
   ok: { label: 'Within limit', tone: 'ok' },
   warning: { label: 'Warning', tone: 'warn' },
   breach: { label: 'Breach', tone: 'crit' },
+  empty: { label: 'Empty', tone: 'neutral' },
   offline: { label: 'Not monitored', tone: 'neutral' },
 }
 

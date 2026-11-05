@@ -10,7 +10,7 @@ import {
 } from '../domain/closure'
 import { createDeviation, type NewDeviation } from '../domain/deviations'
 import { acknowledgeAlert, assignOwner, escalateManually } from '../domain/escalation'
-import { addMinutes, CALIBRATION_INTERVAL_DAYS } from '../domain/rules'
+import { addMinutes, CALIBRATION_INTERVAL_DAYS, loadBlockReason } from '../domain/rules'
 import { advanceMinutes } from '../domain/simulation'
 import { detectTankIssues } from '../domain/tankChecks'
 import { updateSettings } from '../domain/settings'
@@ -157,4 +157,23 @@ export function recordCalibration(tankId: string, personId: string) {
       },
     ),
   )
+}
+
+/** Stores units in a tank. Refused while the tank is not in service or its probe is unverified. */
+export function loadUnits(tankId: string, count: number, personId: string) {
+  setState((s) => {
+    const tank = s.tanks.find((t) => t.id === tankId)
+    if (!tank || loadBlockReason(tank) || !Number.isInteger(count) || count <= 0) return s
+    if (tank.cbuCount + count > tank.capacity) return s
+    const next = withAudit(
+      updateTank(s, tankId, (t) => ({ ...t, cbuCount: t.cbuCount + count })),
+      {
+        actorId: personId,
+        action: 'tank.units_loaded',
+        entityId: tankId,
+        detail: `${count.toLocaleString()} cord blood units loaded into ${tankId} (now ${(tank.cbuCount + count).toLocaleString()} of ${tank.capacity.toLocaleString()}).`,
+      },
+    )
+    return detectTankIssues(next)
+  })
 }
