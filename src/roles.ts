@@ -36,7 +36,7 @@ export const ROLES: Role[] = [
     label: 'MOH',
     who: 'Ministry of Health (regulator)',
     view: 'Macro',
-    summary: 'View overall compliance posture and critical non-compliance alerts.',
+    summary: 'View compliance posture, alerts and the licensee\'s full deviation register.',
   },
 ]
 

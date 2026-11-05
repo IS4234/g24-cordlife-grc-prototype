@@ -91,8 +91,12 @@ export function RiskSettingsPanel({ settings, actorId, lastChange }: RiskSetting
 
         <fieldset className="risk__group">
           <legend>Regulator notification</legend>
+          <p className="risk__note">
+            Critical deviations are always pushed to MOH when they reach the Board. This is the regulatory minimum and
+            cannot be lowered. MOH can also see every deviation in its own read-only register.
+          </p>
           <label className="field">
-            Push to MOH when a deviation of this severity reaches the Board
+            Also push to MOH when they reach the Board
             <select
               id="risk-moh-severity"
               value={draft.mohNotifySeverity}
@@ -100,8 +104,8 @@ export function RiskSettingsPanel({ settings, actorId, lastChange }: RiskSetting
                 setDraft({ ...draft, mohNotifySeverity: e.target.value as Severity })
               }}
             >
-              <option value="critical">Critical only</option>
-              <option value="major">Major and critical</option>
+              <option value="critical">Nothing more (Critical only)</option>
+              <option value="major">Major deviations too</option>
               <option value="minor">All deviations</option>
             </select>
           </label>

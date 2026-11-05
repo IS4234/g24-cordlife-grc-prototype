@@ -205,6 +205,15 @@
   color: var(--muted);
 }
 
+.moh__title {
+  display: grid;
+  gap: 2px;
+}
+
+.moh__head .segmented {
+  align-self: center;
+}
+
 .moh__empty {
   margin: 0;
   padding: 24px;

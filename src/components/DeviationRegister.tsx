@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { isActive } from '../domain/deviations'
-import type { Deviation } from '../domain/types'
+import { isActive, sortForRegister } from '../domain/deviations'
 import type { RoleId } from '../roles'
 import { useAppState } from '../store/store'
 import { DeviationDetail } from './DeviationDetail'
@@ -24,24 +23,13 @@ interface DeviationRegisterProps {
   canRaise?: boolean
 }
 
-function sortDeviations(list: Deviation[]): Deviation[] {
-  // Active ones by nearest deadline first; closed ones newest first
-  return [...list].sort((a, b) => {
-    const aActive = isActive(a)
-    const bActive = isActive(b)
-    if (aActive !== bActive) return aActive ? -1 : 1
-    if (aActive) return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime()
-    return new Date(b.raisedAt).getTime() - new Date(a.raisedAt).getTime()
-  })
-}
-
 export function DeviationRegister({ role, actorId, canRaise }: DeviationRegisterProps) {
   const state = useAppState()
   const [filter, setFilter] = useState<Filter>('active')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
 
-  const visible = sortDeviations(
+  const visible = sortForRegister(
     state.deviations.filter((d) => (filter === 'all' ? true : filter === 'active' ? isActive(d) : !isActive(d))),
   )
   const selected = state.deviations.find((d) => d.id === selectedId)

@@ -58,3 +58,10 @@
   font-size: 13px;
   color: var(--muted);
 }
+
+.risk__note {
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}

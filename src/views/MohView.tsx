@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { DeviationDetail } from '../components/DeviationDetail'
+import { DeviationTable } from '../components/DeviationTable'
 import { Drawer } from '../components/Drawer'
 import { KpiRow, KpiTile } from '../components/KpiTile'
 import { Pill } from '../components/Pill'
 import { SeverityPill } from '../components/Severity'
-import { isActive } from '../domain/deviations'
+import { isActive, sortForRegister } from '../domain/deviations'
 import { computeKris } from '../domain/kri'
 import { DEFAULT_PERSON, personName } from '../domain/people'
 import { computePosture, type Rating } from '../domain/posture'
-import type { DeviationCategory } from '../domain/types'
+import { atLeast } from '../domain/rules'
+import type { DeviationCategory, Severity } from '../domain/types'
 import { formatDateTime } from '../lib/format'
 import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL, type Tone } from '../lib/labels'
 import { acknowledgeMohAlert } from '../store/actions'
@@ -16,6 +18,15 @@ import { useAppState } from '../store/store'
 import './MohView.css'
 
 const ACTOR = DEFAULT_PERSON.moh
+
+const REPORTED: Record<Severity, string> = { critical: 'a critical', major: 'a major or critical', minor: 'any' }
+
+// MOH chooses what it looks at; the licensee cannot hide anything from this register
+const SEVERITY_FILTERS: { min: Severity; label: string }[] = [
+  { min: 'critical', label: 'Critical' },
+  { min: 'major', label: 'Major and above' },
+  { min: 'minor', label: 'All' },
+]
 
 const RATING: Record<Rating, { label: string; tone: Tone }> = {
   good: { label: 'Good', tone: 'ok' },
@@ -26,6 +37,7 @@ const RATING: Record<Rating, { label: string; tone: Tone }> = {
 export function MohView() {
   const state = useAppState()
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [minSeverity, setMinSeverity] = useState<Severity>('major')
   const posture = computePosture(state)
   const k = computeKris(state)
   const rating = RATING[posture.rating]
@@ -37,6 +49,7 @@ export function MohView() {
       return new Date(b.mohNotifiedAt!).getTime() - new Date(a.mohNotifiedAt!).getTime()
     })
   const selected = state.deviations.find((d) => d.id === selectedId)
+  const register = sortForRegister(state.deviations.filter((d) => atLeast(d.severity, minSeverity)))
 
   const thirtyDaysAgo = new Date(state.simTime).getTime() - 30 * 86_400_000
   const byCategory = new Map<DeviationCategory, number>()
@@ -58,7 +71,7 @@ export function MohView() {
         </div>
         <div>
           <span className="licensee__label">Data feed</span>
-          <span>Continuous · aggregates and critical alerts only</span>
+          <span>Continuous · alerts and full deviation register, read-only</span>
         </div>
       </div>
 
@@ -99,8 +112,11 @@ export function MohView() {
 
       <section className="moh__section">
         <div className="moh__head">
-          <h2>Critical alerts</h2>
-          <span>Pushed automatically when a critical deviation reaches the Board, or escalated to MOH directly</span>
+          <h2>Alerts</h2>
+          <span>
+            Pushed automatically when {REPORTED[state.settings.mohNotifySeverity]} deviation reaches the Board, or
+            escalated to MOH directly
+          </span>
         </div>
         {alerts.length === 0 ? (
           <p className="moh__empty">No alerts have been pushed to MOH.</p>
@@ -157,8 +173,32 @@ export function MohView() {
 
       <section className="moh__section">
         <div className="moh__head">
+          <div className="moh__title">
+            <h2>Deviation register</h2>
+            <span>Every deviation the licensee has raised, read-only. MOH sets this filter, not the licensee.</span>
+          </div>
+          <div className="segmented" role="tablist" aria-label="Minimum severity">
+            {SEVERITY_FILTERS.map((f) => (
+              <button
+                key={f.min}
+                type="button"
+                role="tab"
+                aria-selected={minSeverity === f.min}
+                className={minSeverity === f.min ? 'segmented__btn segmented__btn--active' : 'segmented__btn'}
+                onClick={() => setMinSeverity(f.min)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <DeviationTable deviations={register} now={state.simTime} onSelect={setSelectedId} />
+      </section>
+
+      <section className="moh__section">
+        <div className="moh__head">
           <h2>Licensee summary</h2>
-          <span>Aggregates only; operational detail stays with the licensee</span>
+          <span>Aggregates across all of the licensee's tanks and deviations</span>
         </div>
         <KpiRow>
           <KpiTile

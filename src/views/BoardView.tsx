@@ -63,7 +63,7 @@ export function BoardView() {
           <KpiTile
             label="Pushed to MOH"
             value={String(k.mohNotified)}
-            sub="Critical deviations at Board level"
+            sub="Alerts sent to the regulator"
             tone={k.mohNotified ? 'crit' : 'ok'}
           />
         </KpiRow>

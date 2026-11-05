@@ -12,7 +12,8 @@ export function levelsAbove(level: EscalationLevel): EscalationLevel[] {
 }
 
 function escalate(s: AppState, d: Deviation, to: EscalationLevel, actorId: string, reason: string): AppState {
-  // Severe deviations reach MOH as soon as the Board sees them, without waiting for the Board to act
+  // Severe deviations reach MOH as soon as the Board sees them, without waiting for the Board to act.
+  // Critical always qualifies: the Board can widen this to Major or Minor but never narrow it.
   const notifyMoh =
     !d.mohNotifiedAt && (to === 'moh' || (to === 'board' && atLeast(d.severity, s.settings.mohNotifySeverity)))
 

@@ -53,3 +53,14 @@ export function activeSensorDeviations(s: AppState, tankId: string, trigger?: Se
 export function activeSensorDeviation(s: AppState, tankId: string, trigger: SensorTrigger): Deviation | undefined {
   return activeSensorDeviations(s, tankId, trigger)[0]
 }
+
+/** Active ones by nearest deadline first; closed ones newest first */
+export function sortForRegister(list: Deviation[]): Deviation[] {
+  return [...list].sort((a, b) => {
+    const aActive = isActive(a)
+    const bActive = isActive(b)
+    if (aActive !== bActive) return aActive ? -1 : 1
+    if (aActive) return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime()
+    return new Date(b.raisedAt).getTime() - new Date(a.raisedAt).getTime()
+  })
+}
