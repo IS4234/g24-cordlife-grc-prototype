@@ -93,7 +93,6 @@ export interface AuditEntry {
 
 /** Board-approved risk appetite. Deadlines are in simulated minutes. */
 export interface RiskSettings {
-  thresholdC: number
   warningC: number
   deadlineMinutes: Record<Severity, number>
   /** Deviations at or above this severity are pushed to MOH as soon as they escalate to the Board */

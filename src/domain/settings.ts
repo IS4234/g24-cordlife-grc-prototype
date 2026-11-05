@@ -1,6 +1,7 @@
 import { SEVERITY } from '../lib/labels'
 import { withAudit } from './audit'
 import { getPerson } from './people'
+import { BREACH_LIMIT_C } from './rules'
 import type { AppState, RiskSettings, Severity } from './types'
 
 export const SETTINGS_ENTITY = 'RISK-APPETITE'
@@ -9,8 +10,9 @@ const SEVERITIES: Severity[] = ['critical', 'major', 'minor']
 
 export function settingsErrors(next: RiskSettings): string[] {
   const errors: string[] = []
-  if (next.warningC >= next.thresholdC) errors.push('The warning level must be colder than the breach limit.')
-  if (next.thresholdC > -135) errors.push('The breach limit cannot be warmer than −135 °C (glass transition range).')
+  if (!Number.isFinite(next.warningC) || next.warningC >= BREACH_LIMIT_C) {
+    errors.push(`The warning level must be colder than the ${BREACH_LIMIT_C} °C breach limit.`)
+  }
   for (const s of SEVERITIES) {
     if (!Number.isFinite(next.deadlineMinutes[s]) || next.deadlineMinutes[s] < 5) {
       errors.push(`The ${SEVERITY[s].label.toLowerCase()} deadline must be at least 5 minutes.`)
@@ -24,7 +26,6 @@ export function settingsErrors(next: RiskSettings): string[] {
 
 function describeChanges(prev: RiskSettings, next: RiskSettings): string[] {
   const changes: string[] = []
-  if (prev.thresholdC !== next.thresholdC) changes.push(`breach limit ${prev.thresholdC} → ${next.thresholdC} °C`)
   if (prev.warningC !== next.warningC) changes.push(`warning level ${prev.warningC} → ${next.warningC} °C`)
   for (const s of SEVERITIES) {
     if (prev.deadlineMinutes[s] !== next.deadlineMinutes[s]) {

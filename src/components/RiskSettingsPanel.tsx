@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { personName } from '../domain/people'
+import { BREACH_LIMIT_C } from '../domain/rules'
 import { settingsErrors } from '../domain/settings'
 import type { AuditEntry, RiskSettings, Severity } from '../domain/types'
 import { formatDateTime } from '../lib/format'
@@ -45,18 +46,14 @@ export function RiskSettingsPanel({ settings, actorId, lastChange }: RiskSetting
       >
         <fieldset className="risk__group">
           <legend>Storage temperature</legend>
-          <label className="field">
+          <div className="field">
             Breach limit (°C)
-            <input
-              id="risk-threshold"
-              type="number"
-              step="1"
-              value={draft.thresholdC}
-              onChange={(e) => {
-                setDraft({ ...draft, thresholdC: Number(e.target.value) })
-              }}
-            />
-          </label>
+            <span className="risk__fixed mono" aria-label={`Breach limit ${BREACH_LIMIT_C} °C, fixed`}>
+              {BREACH_LIMIT_C}
+              <span className="risk__fixed-tag">Fixed</span>
+            </span>
+            <span className="field__hint">Storage standard for cord blood. The Board cannot change it.</span>
+          </div>
           <label className="field">
             Warning level (°C)
             <input

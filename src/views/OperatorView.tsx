@@ -4,7 +4,7 @@ import { SeverityPill } from '../components/Severity'
 import { TankCard } from '../components/TankCard'
 import { activeSensorDeviations, isActive } from '../domain/deviations'
 import { DEFAULT_PERSON } from '../domain/people'
-import { isMonitored, tempStatus } from '../domain/rules'
+import { BREACH_LIMIT_C, isMonitored, tempStatus } from '../domain/rules'
 import { formatDateTime } from '../lib/format'
 import { restoreCooling, returnTankToService, verifyProbeMapping } from '../store/actions'
 import { useAppState } from '../store/store'
@@ -50,7 +50,7 @@ export function OperatorView() {
         <div className="section-head">
           <h2>Storage tanks</h2>
           <span className="section-head__meta">
-            Limit {settings.thresholdC} °C · warning above {settings.warningC} °C
+            Limit {BREACH_LIMIT_C} °C · warning above {settings.warningC} °C
           </span>
         </div>
         <div className="tank-grid">

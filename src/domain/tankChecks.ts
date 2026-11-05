@@ -2,7 +2,7 @@ import { formatDateTime } from '../lib/format'
 import { SERVICE_LABEL } from '../lib/labels'
 import { activeSensorDeviation, createDeviation, type NewDeviation } from './deviations'
 import { SYSTEM_ACTOR } from './people'
-import { isInService, isOverdue, severityForBreach, tempStatus } from './rules'
+import { BREACH_LIMIT_C, isInService, isOverdue, severityForBreach, tempStatus } from './rules'
 import type { AppState, SensorTrigger, Tank } from './types'
 
 type Finding = Omit<NewDeviation, 'source' | 'raisedBy' | 'tankId' | 'trigger'>
@@ -17,8 +17,8 @@ const CHECKS: Record<SensorTrigger, (t: Tank, s: AppState) => Finding | undefine
   breach: (t, s) =>
     tempStatus(t, s.settings) === 'breach'
       ? {
-          title: `${t.id} temperature above ${s.settings.thresholdC} °C`,
-          description: `Probe reading of ${t.tempC} °C exceeded the ${s.settings.thresholdC} °C limit. ${units(t)} stored in this tank.`,
+          title: `${t.id} temperature above ${BREACH_LIMIT_C} °C`,
+          description: `Probe reading of ${t.tempC} °C exceeded the ${BREACH_LIMIT_C} °C limit. ${units(t)} stored in this tank.`,
           category: 'storage_temperature',
           severity: severityForBreach(t),
           evidence: [`Probe reading ${t.tempC} °C at ${s.simTime}`],

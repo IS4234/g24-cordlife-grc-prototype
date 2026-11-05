@@ -1,5 +1,11 @@
 import type { DeviationCategory, RiskSettings, Severity, Tank } from './types'
 
+/**
+ * Cord blood must stay at or below -150 °C. This is the storage standard, not risk appetite,
+ * so it is fixed here rather than in the Board's settings.
+ */
+export const BREACH_LIMIT_C = -150
+
 export type TempStatus = 'ok' | 'warning' | 'breach' | 'offline'
 
 export function isInService(tank: Tank): boolean {
@@ -13,7 +19,7 @@ export function isMonitored(tank: Tank): boolean {
 
 export function tempStatus(tank: Tank, settings: RiskSettings): TempStatus {
   if (!isMonitored(tank)) return 'offline'
-  if (tank.tempC > settings.thresholdC) return 'breach'
+  if (tank.tempC > BREACH_LIMIT_C) return 'breach'
   if (tank.tempC > settings.warningC) return 'warning'
   return 'ok'
 }

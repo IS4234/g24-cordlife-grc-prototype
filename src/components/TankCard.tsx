@@ -1,4 +1,4 @@
-import { isInService, isOverdue, tempStatus } from '../domain/rules'
+import { BREACH_LIMIT_C, isInService, isOverdue, tempStatus } from '../domain/rules'
 import type { Deviation, RiskSettings, Tank } from '../domain/types'
 import { formatDateTime } from '../lib/format'
 import { SERVICE_LABEL, TEMP_STATUS, TRIGGER_LABEL } from '../lib/labels'
@@ -35,10 +35,10 @@ export function TankCard({ tank, settings, now, deviations, onRestore, onVerifyP
       <div className="tank__temp">
         <span className="tank__value mono">{tank.tempC.toFixed(1)}</span>
         <span className="tank__unit">°C</span>
-        <span className="tank__limit">limit {settings.thresholdC} °C</span>
+        <span className="tank__limit">limit {BREACH_LIMIT_C} °C</span>
       </div>
 
-      <Sparkline values={tank.history} thresholdC={settings.thresholdC} tone={tone} />
+      <Sparkline values={tank.history} thresholdC={BREACH_LIMIT_C} tone={tone} />
 
       <dl className="tank__facts">
         <div>
