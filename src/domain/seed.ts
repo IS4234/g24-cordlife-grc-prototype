@@ -1,7 +1,7 @@
 import type { AppState, Tank } from './types'
 
 // Bump when the shape of AppState changes, so browsers holding old data reload the seed
-export const STATE_VERSION = 4
+export const STATE_VERSION = 5
 
 // Demo starts on a Monday morning, Singapore time
 const START = '2026-10-26T09:00:00+08:00'
@@ -49,7 +49,8 @@ export function createSeedState(): AppState {
     tank(5, 5660, -192.0, 'in_service', 25),
     tank(6, 3120, -190.1, 'in_service', 51),
     tank(7, 5890, -187.6, 'in_service', 70),
-    tank(8, 4410, -189.3, 'due_service', 88),
+    // Due two hours into the demo, so running the feed shows an overdue-service deviation
+    { ...tank(8, 4410, -189.3, 'due_service', 90), nextServiceDue: minutesFrom(START, 120) },
     tank(9, 0, -186.0, 'servicing', 0),
     tank(10, 2780, -191.6, 'in_service', 33),
     tank(11, 0, 21.0, 'not_in_use', 140),

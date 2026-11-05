@@ -176,6 +176,13 @@
   color: var(--crit);
 }
 
-.tank__action {
-  align-self: flex-start;
+.tank__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tank__overdue {
+  color: var(--crit);
+  font-weight: 500;
 }

@@ -1,5 +1,12 @@
 import type { TempStatus } from '../domain/rules'
-import type { DeviationCategory, DeviationStatus, EscalationLevel, ServiceStatus, Severity } from '../domain/types'
+import type {
+  DeviationCategory,
+  DeviationStatus,
+  EscalationLevel,
+  SensorTrigger,
+  ServiceStatus,
+  Severity,
+} from '../domain/types'
 
 export const CATEGORY_LABEL: Record<DeviationCategory, string> = {
   storage_temperature: 'Storage temperature',
@@ -57,4 +64,11 @@ export const LEVEL_LABEL: Record<EscalationLevel, string> = {
   cgo: 'Clinical Governance',
   board: 'Board',
   moh: 'MOH',
+}
+
+export const TRIGGER_LABEL: Record<SensorTrigger, string> = {
+  breach: 'temperature breach',
+  unmonitored_units: 'units not monitored',
+  probe_unverified: 'probe not verified',
+  service_overdue: 'service overdue',
 }

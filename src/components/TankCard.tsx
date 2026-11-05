@@ -1,7 +1,7 @@
-import { tempStatus } from '../domain/rules'
+import { isInService, isOverdue, tempStatus } from '../domain/rules'
 import type { Deviation, RiskSettings, Tank } from '../domain/types'
 import { formatDateTime } from '../lib/format'
-import { SERVICE_LABEL, TEMP_STATUS } from '../lib/labels'
+import { SERVICE_LABEL, TEMP_STATUS, TRIGGER_LABEL } from '../lib/labels'
 import { Pill } from './Pill'
 import { Sparkline } from './Sparkline'
 import './TankCard.css'
@@ -9,11 +9,15 @@ import './TankCard.css'
 interface TankCardProps {
   tank: Tank
   settings: RiskSettings
-  deviation?: Deviation
+  now: string
+  /** Open system-raised deviations for this tank */
+  deviations: Deviation[]
   onRestore: () => void
+  onVerifyProbe: () => void
+  onReturnToService: () => void
 }
 
-export function TankCard({ tank, settings, deviation, onRestore }: TankCardProps) {
+export function TankCard({ tank, settings, now, deviations, onRestore, onVerifyProbe, onReturnToService }: TankCardProps) {
   const status = tempStatus(tank, settings)
   const { label, tone } = TEMP_STATUS[status]
   const fill = Math.round((tank.cbuCount / tank.capacity) * 100)
@@ -52,20 +56,36 @@ export function TankCard({ tank, settings, deviation, onRestore }: TankCardProps
         </div>
         <div>
           <dt>Next service</dt>
-          <dd className="mono">{formatDateTime(tank.nextServiceDue)}</dd>
+          <dd className={isInService(tank) && isOverdue(tank.nextServiceDue, now) ? 'mono tank__overdue' : 'mono'}>
+            {formatDateTime(tank.nextServiceDue)}
+          </dd>
         </div>
       </dl>
 
       {!tank.probeVerified && <p className="tank__note tank__note--warn">Probe mapping not verified</p>}
-      {deviation && (
-        <p className="tank__note tank__note--crit">
-          <span className="mono">{deviation.id}</span> raised automatically
+      {deviations.map((d) => (
+        <p key={d.id} className={`tank__note tank__note--${d.severity === 'critical' ? 'crit' : 'warn'}`}>
+          <span className="mono">{d.id}</span> raised automatically: {TRIGGER_LABEL[d.trigger ?? 'breach']}
         </p>
-      )}
-      {tank.fault && (
-        <button type="button" className="btn btn--small tank__action" onClick={onRestore}>
-          Restore LN2 supply
-        </button>
+      ))}
+      {(tank.fault || tank.serviceStatus === 'servicing') && (
+        <div className="tank__actions">
+          {tank.fault && (
+            <button type="button" className="btn btn--small" onClick={onRestore}>
+              Restore LN2 supply
+            </button>
+          )}
+          {tank.serviceStatus === 'servicing' && !tank.probeVerified && (
+            <button type="button" className="btn btn--small" onClick={onVerifyProbe}>
+              Verify probe mapping
+            </button>
+          )}
+          {tank.serviceStatus === 'servicing' && (
+            <button type="button" className="btn btn--ghost btn--small" onClick={onReturnToService}>
+              Return to service
+            </button>
+          )}
+        </div>
       )}
     </article>
   )

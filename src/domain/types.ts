@@ -22,6 +22,9 @@ export interface Tank {
 
 export type Severity = 'minor' | 'major' | 'critical'
 
+/** The tank condition that made the system raise a deviation */
+export type SensorTrigger = 'breach' | 'unmonitored_units' | 'probe_unverified' | 'service_overdue'
+
 export type DeviationStatus = 'open' | 'investigating' | 'escalated' | 'pending_closure' | 'closed'
 
 export type DeviationCategory = 'storage_temperature' | 'collection_bag' | 'freezing' | 'equipment' | 'other'
@@ -49,6 +52,8 @@ export interface Deviation {
   title: string
   description: string
   source: 'sensor' | 'manual'
+  /** For system-raised deviations, the condition that raised it */
+  trigger?: SensorTrigger
   category: DeviationCategory
   tankId?: string
   /** Units that may be affected, used by the manual severity rule */

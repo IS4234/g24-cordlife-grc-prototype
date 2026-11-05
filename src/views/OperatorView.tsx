@@ -2,11 +2,11 @@ import { DeviationRegister } from '../components/DeviationRegister'
 import { KpiRow, KpiTile } from '../components/KpiTile'
 import { SeverityPill } from '../components/Severity'
 import { TankCard } from '../components/TankCard'
-import { activeSensorDeviation, isActive } from '../domain/deviations'
+import { activeSensorDeviations, isActive } from '../domain/deviations'
 import { DEFAULT_PERSON } from '../domain/people'
 import { isMonitored, tempStatus } from '../domain/rules'
 import { formatDateTime } from '../lib/format'
-import { restoreCooling } from '../store/actions'
+import { restoreCooling, returnTankToService, verifyProbeMapping } from '../store/actions'
 import { useAppState } from '../store/store'
 import './OperatorView.css'
 
@@ -59,8 +59,11 @@ export function OperatorView() {
               key={t.id}
               tank={t}
               settings={settings}
-              deviation={activeSensorDeviation(state, t.id)}
+              now={state.simTime}
+              deviations={activeSensorDeviations(state, t.id)}
               onRestore={() => restoreCooling(t.id, DEFAULT_PERSON.operator)}
+              onVerifyProbe={() => verifyProbeMapping(t.id, DEFAULT_PERSON.operator)}
+              onReturnToService={() => returnTankToService(t.id, DEFAULT_PERSON.operator)}
             />
           ))}
         </div>

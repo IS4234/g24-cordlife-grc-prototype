@@ -10,9 +10,11 @@ import {
 } from '../domain/closure'
 import { createDeviation, type NewDeviation } from '../domain/deviations'
 import { acknowledgeAlert, assignOwner, escalateManually } from '../domain/escalation'
+import { addMinutes } from '../domain/rules'
 import { advanceMinutes } from '../domain/simulation'
+import { detectTankIssues } from '../domain/tankChecks'
 import { updateSettings } from '../domain/settings'
-import type { EscalationLevel, RiskSettings, Severity } from '../domain/types'
+import type { AppState, EscalationLevel, RiskSettings, Severity, Tank } from '../domain/types'
 import { setState } from './store'
 
 export function submitClosure(id: string, actorId: string, input: ClosureSubmission) {
@@ -85,4 +87,55 @@ export function restoreCooling(tankId: string, personId: string) {
       },
     ),
   )
+}
+
+const SERVICE_INTERVAL_DAYS = 90
+
+function updateTank(s: AppState, tankId: string, update: (t: Tank) => Tank): AppState {
+  return { ...s, tanks: s.tanks.map((t) => (t.id === tankId ? update(t) : t)) }
+}
+
+/** Confirms the probe is wired to the right tank after maintenance */
+export function verifyProbeMapping(tankId: string, personId: string) {
+  setState((s) =>
+    withAudit(
+      updateTank(s, tankId, (t) => ({ ...t, probeVerified: true })),
+      {
+        actorId: personId,
+        action: 'tank.probe_verified',
+        entityId: tankId,
+        detail: `${tankId} probe-to-tank mapping verified against a reference reading.`,
+      },
+    ),
+  )
+}
+
+/** Ends maintenance. Allowed before probe verification, but the checks will then raise a deviation. */
+export function returnTankToService(tankId: string, personId: string) {
+  setState((s) => {
+    const tank = s.tanks.find((t) => t.id === tankId)
+    if (!tank || tank.serviceStatus !== 'servicing') return s
+    const next = withAudit(
+      updateTank(s, tankId, (t) => ({
+        ...t,
+        serviceStatus: 'in_service',
+        lastServicedAt: s.simTime,
+        nextServiceDue: addMinutes(s.simTime, SERVICE_INTERVAL_DAYS * 1440),
+      })),
+      {
+        actorId: personId,
+        action: 'tank.returned_to_service',
+        entityId: tankId,
+        detail: tank.probeVerified
+          ? `${tankId} returned to service after maintenance.`
+          : `${tankId} returned to service without probe mapping verification.`,
+      },
+    )
+    return detectTankIssues(next)
+  })
+}
+
+/** Demo control: units placed in a tank that is not being monitored. Not audited, since it is not a real event. */
+export function injectUnmonitoredUnits(tankId: string) {
+  setState((s) => detectTankIssues(updateTank(s, tankId, (t) => ({ ...t, cbuCount: 420 }))))
 }

@@ -2,9 +2,13 @@ import type { DeviationCategory, RiskSettings, Severity, Tank } from './types'
 
 export type TempStatus = 'ok' | 'warning' | 'breach' | 'offline'
 
+export function isInService(tank: Tank): boolean {
+  return tank.serviceStatus === 'in_service' || tank.serviceStatus === 'due_service'
+}
+
 /** A tank is monitored for breaches when it holds units and is in service */
 export function isMonitored(tank: Tank): boolean {
-  return tank.cbuCount > 0 && (tank.serviceStatus === 'in_service' || tank.serviceStatus === 'due_service')
+  return tank.cbuCount > 0 && isInService(tank)
 }
 
 export function tempStatus(tank: Tank, settings: RiskSettings): TempStatus {

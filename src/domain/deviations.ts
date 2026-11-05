@@ -1,11 +1,11 @@
 import { withAudit } from './audit'
 import { dueAtFor } from './rules'
-import type { AppState, Deviation } from './types'
+import type { AppState, Deviation, SensorTrigger } from './types'
 
 export type NewDeviation = Pick<
   Deviation,
   'title' | 'description' | 'source' | 'category' | 'severity' | 'raisedBy' | 'evidence'
-> & { tankId?: string; unitsAffected?: number }
+> & { tankId?: string; unitsAffected?: number; trigger?: SensorTrigger }
 
 export function createDeviation(s: AppState, input: NewDeviation): AppState {
   const year = new Date(s.simTime).getFullYear()
@@ -39,6 +39,17 @@ export function isActive(d: Deviation): boolean {
   return d.status !== 'closed'
 }
 
-export function activeSensorDeviation(s: AppState, tankId: string): Deviation | undefined {
-  return s.deviations.find((d) => d.source === 'sensor' && d.tankId === tankId && isActive(d))
+/** Open system-raised deviations for a tank, optionally for one condition */
+export function activeSensorDeviations(s: AppState, tankId: string, trigger?: SensorTrigger): Deviation[] {
+  return s.deviations.filter(
+    (d) =>
+      d.source === 'sensor' &&
+      d.tankId === tankId &&
+      isActive(d) &&
+      (trigger === undefined || (d.trigger ?? 'breach') === trigger),
+  )
+}
+
+export function activeSensorDeviation(s: AppState, tankId: string, trigger: SensorTrigger): Deviation | undefined {
+  return activeSensorDeviations(s, tankId, trigger)[0]
 }

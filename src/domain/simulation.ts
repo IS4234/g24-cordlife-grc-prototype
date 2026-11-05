@@ -1,7 +1,6 @@
-import { SYSTEM_ACTOR } from './people'
-import { activeSensorDeviation, createDeviation } from './deviations'
 import { applyDeadlines } from './escalation'
-import { addMinutes, severityForBreach, tempStatus } from './rules'
+import { addMinutes } from './rules'
+import { detectTankIssues } from './tankChecks'
 import type { AppState, Tank } from './types'
 
 export const HISTORY_LENGTH = 40
@@ -36,29 +35,9 @@ function stepTank(tank: Tank): Tank {
   return { ...tank, tempC: temp, history: [...tank.history, temp].slice(-HISTORY_LENGTH) }
 }
 
-/** Every breach opens a deviation. Nobody decides whether it exists. */
-function detectBreaches(s: AppState): AppState {
-  let next = s
-  for (const tank of s.tanks) {
-    if (tempStatus(tank, s.settings) !== 'breach') continue
-    if (activeSensorDeviation(next, tank.id)) continue
-    next = createDeviation(next, {
-      title: `${tank.id} temperature above ${s.settings.thresholdC} °C`,
-      description: `Probe reading of ${tank.tempC} °C exceeded the ${s.settings.thresholdC} °C limit. ${tank.cbuCount.toLocaleString()} cord blood units stored in this tank.`,
-      source: 'sensor',
-      category: 'storage_temperature',
-      tankId: tank.id,
-      severity: severityForBreach(tank),
-      raisedBy: SYSTEM_ACTOR,
-      evidence: [`Probe reading ${tank.tempC} °C at ${s.simTime}`],
-    })
-  }
-  return next
-}
-
 function stepMinute(s: AppState): AppState {
   const next = { ...s, simTime: addMinutes(s.simTime, 1), tanks: s.tanks.map(stepTank) }
-  return applyDeadlines(detectBreaches(next))
+  return applyDeadlines(detectTankIssues(next))
 }
 
 export function advanceMinutes(s: AppState, minutes: number): AppState {
