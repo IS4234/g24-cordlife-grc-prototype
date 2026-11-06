@@ -9,7 +9,7 @@ import { activeSensorDeviations, isActive } from '../domain/deviations'
 import { DEFAULT_PERSON } from '../domain/people'
 import { BREACH_LIMIT_C, isMonitored, tempStatus } from '../domain/rules'
 import { formatDateTime } from '../lib/format'
-import { restoreCooling, returnTankToService, verifyProbeMapping } from '../store/actions'
+import { restoreCooling, restoreProbeFeed, returnTankToService, verifyProbeMapping } from '../store/actions'
 import { useAppState } from '../store/store'
 import './OperatorView.css'
 
@@ -69,6 +69,7 @@ export function OperatorView() {
               onRestore={() => restoreCooling(t.id, DEFAULT_PERSON.operator)}
               onVerifyProbe={() => verifyProbeMapping(t.id, DEFAULT_PERSON.operator)}
               onReturnToService={() => returnTankToService(t.id, DEFAULT_PERSON.operator)}
+              onRestoreProbe={() => restoreProbeFeed(t.id, DEFAULT_PERSON.operator)}
               onOpen={() => setOpenTankId(t.id)}
             />
           ))}

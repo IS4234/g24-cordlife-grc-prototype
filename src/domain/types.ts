@@ -14,6 +14,10 @@ export interface Tank {
   nextServiceDue: string
   /** False after maintenance until the probe-to-tank mapping is verified */
   probeVerified: boolean
+  /** When the probe last reported a reading */
+  lastReadingAt: string
+  /** Demo-only: the probe has stopped reporting, so readings freeze */
+  probeOffline?: boolean
   /** Recent readings, one per simulated minute, oldest first */
   history: number[]
   /** Liquid nitrogen fill level, 0 to 100 */
@@ -36,6 +40,7 @@ export type SensorTrigger =
   | 'ln2_low'
   | 'temp_warning'
   | 'calibration_overdue'
+  | 'probe_offline'
 
 export type DeviationStatus = 'open' | 'investigating' | 'escalated' | 'pending_closure' | 'closed'
 

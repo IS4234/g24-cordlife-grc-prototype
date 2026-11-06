@@ -1,9 +1,17 @@
 import type { MouseEvent } from 'react'
 import { excursionSummary } from '../domain/excursion'
-import { BREACH_LIMIT_C, isInService, isOverdue, LN2_LOW_PCT, tempStatus } from '../domain/rules'
+import {
+  BREACH_LIMIT_C,
+  isInService,
+  isOverdue,
+  LN2_LOW_PCT,
+  PROBE_STALE_MIN,
+  readingAgeMin,
+  tempStatus,
+} from '../domain/rules'
 import type { Deviation, RiskSettings, Tank } from '../domain/types'
-import { formatDateTime, formatSpan } from '../lib/format'
-import { SERVICE_LABEL, TEMP_STATUS, TRIGGER_LABEL } from '../lib/labels'
+import { formatAgo, formatDateTime, formatSpan } from '../lib/format'
+import { SERVICE_LABEL, tankBadge, TRIGGER_LABEL } from '../lib/labels'
 import { Pill } from './Pill'
 import { Sparkline } from './Sparkline'
 import './TankCard.css'
@@ -17,6 +25,7 @@ interface TankCardProps {
   onRestore: () => void
   onVerifyProbe: () => void
   onReturnToService: () => void
+  onRestoreProbe: () => void
   onOpen: () => void
 }
 
@@ -43,9 +52,11 @@ const own = (fn: () => void) => (e: MouseEvent) => {
 }
 
 export function TankCard(props: TankCardProps) {
-  const { tank, settings, now, deviations, onRestore, onVerifyProbe, onReturnToService, onOpen } = props
+  const { tank, settings, now, deviations, onRestore, onVerifyProbe, onReturnToService, onRestoreProbe, onOpen } = props
+  const age = readingAgeMin(tank, now)
+  const freshness = age >= PROBE_STALE_MIN ? 'crit' : age >= 2 ? 'warn' : 'ok'
   const status = tempStatus(tank, settings)
-  const { label, tone } = TEMP_STATUS[status]
+  const { label, tone } = tankBadge(tank, settings, now)
   const fill = Math.round((tank.cbuCount / tank.capacity) * 100)
 
   return (
@@ -88,6 +99,14 @@ export function TankCard(props: TankCardProps) {
           </dd>
         </div>
         <div>
+          <dt>Last reading</dt>
+          {tank.serviceStatus === 'not_in_use' ? (
+            <dd className="tank__muted">No live feed</dd>
+          ) : (
+            <dd className={`tank__fresh tank__fresh--${freshness}`}>{formatAgo(tank.lastReadingAt, now)}</dd>
+          )}
+        </div>
+        <div>
           <dt>Service</dt>
           <dd>{SERVICE_LABEL[tank.serviceStatus]}</dd>
         </div>
@@ -106,11 +125,16 @@ export function TankCard(props: TankCardProps) {
           {excursionText(d, now)}
         </p>
       ))}
-      {(tank.fault || tank.serviceStatus === 'servicing' || status === 'empty') && (
+      {(tank.fault || tank.probeOffline || tank.serviceStatus === 'servicing' || status === 'empty') && (
         <div className="tank__actions">
           {tank.fault && (
             <button type="button" className="btn btn--small" onClick={own(onRestore)}>
               Restore LN2 supply
+            </button>
+          )}
+          {tank.probeOffline && (
+            <button type="button" className="btn btn--small" onClick={own(onRestoreProbe)}>
+              Restore probe feed
             </button>
           )}
           {tank.serviceStatus === 'servicing' && !tank.probeVerified && (

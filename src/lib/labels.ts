@@ -1,11 +1,13 @@
-import type { TempStatus } from '../domain/rules'
+import { isInService, PROBE_STALE_MIN, readingAgeMin, tempStatus, type TempStatus } from '../domain/rules'
 import type {
   DeviationCategory,
   DeviationStatus,
   EscalationLevel,
   SensorTrigger,
+  RiskSettings,
   ServiceStatus,
   Severity,
+  Tank,
 } from '../domain/types'
 
 export const CATEGORY_LABEL: Record<DeviationCategory, string> = {
@@ -75,4 +77,14 @@ export const TRIGGER_LABEL: Record<SensorTrigger, string> = {
   ln2_low: 'LN2 level low',
   temp_warning: 'temperature warning',
   calibration_overdue: 'calibration overdue',
+  probe_offline: 'probe offline',
 }
+
+/** The status badge. A silent probe means the last reading can't be trusted, so it shows "No data" */
+export function tankBadge(tank: Tank, settings: RiskSettings, now: string): (typeof TEMP_STATUS)[TempStatus] {
+  if (isInService(tank) && readingAgeMin(tank, now) >= PROBE_STALE_MIN) {
+    return { label: 'No data', tone: 'crit' }
+  }
+  return TEMP_STATUS[tempStatus(tank, settings)]
+}
+

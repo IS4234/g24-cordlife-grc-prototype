@@ -177,3 +177,22 @@ export function loadUnits(tankId: string, count: number, personId: string) {
     return detectTankIssues(next)
   })
 }
+
+/** Demo control: the tank's probe stops reporting. Not audited, since it is not a real event. */
+export function injectProbeDropout(tankId: string) {
+  setState((s) => updateTank(s, tankId, (t) => ({ ...t, probeOffline: true })))
+}
+
+export function restoreProbeFeed(tankId: string, personId: string) {
+  setState((s) =>
+    withAudit(
+      updateTank(s, tankId, (t) => ({ ...t, probeOffline: false })),
+      {
+        actorId: personId,
+        action: 'tank.probe_restored',
+        entityId: tankId,
+        detail: `${tankId} probe feed restored; readings resume from the next minute. Any linked deviation stays open for investigation.`,
+      },
+    ),
+  )
+}

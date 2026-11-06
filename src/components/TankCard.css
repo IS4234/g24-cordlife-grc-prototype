@@ -221,3 +221,17 @@
   color: var(--warn);
   font-weight: 500;
 }
+
+.tank__fresh--warn {
+  color: var(--warn);
+  font-weight: 500;
+}
+
+.tank__fresh--crit {
+  color: var(--crit);
+  font-weight: 500;
+}
+
+.tank__muted {
+  color: var(--muted);
+}

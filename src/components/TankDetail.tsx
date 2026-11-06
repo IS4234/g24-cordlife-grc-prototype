@@ -1,10 +1,18 @@
 import { useState } from 'react'
 import { sortForRegister } from '../domain/deviations'
 import { personName } from '../domain/people'
-import { BREACH_LIMIT_C, isInService, isOverdue, LN2_LOW_PCT, loadBlockReason, tempStatus } from '../domain/rules'
+import {
+  BREACH_LIMIT_C,
+  isInService,
+  isOverdue,
+  LN2_LOW_PCT,
+  loadBlockReason,
+  PROBE_STALE_MIN,
+  readingAgeMin,
+} from '../domain/rules'
 import type { AppState, Tank } from '../domain/types'
-import { formatDate, formatDateTime } from '../lib/format'
-import { DEVIATION_STATUS, SERVICE_LABEL, TEMP_STATUS } from '../lib/labels'
+import { formatAgo, formatDate, formatDateTime } from '../lib/format'
+import { DEVIATION_STATUS, SERVICE_LABEL, tankBadge } from '../lib/labels'
 import { loadUnits, recordCalibration } from '../store/actions'
 import { Ln2Bar } from './TankCard'
 import { Pill } from './Pill'
@@ -18,7 +26,7 @@ interface TankDetailProps {
 }
 
 export function TankDetail({ tank, state, actorId }: TankDetailProps) {
-  const status = TEMP_STATUS[tempStatus(tank, state.settings)]
+  const status = tankBadge(tank, state.settings, state.simTime)
   const inUse = isInService(tank)
   const calibrationLate = inUse && isOverdue(tank.calibrationDue, state.simTime)
   const serviceLate = inUse && isOverdue(tank.nextServiceDue, state.simTime)
@@ -57,6 +65,15 @@ export function TankDetail({ tank, state, actorId }: TankDetailProps) {
       <section className="detail__section">
         <h4>Probe</h4>
         <dl className="detail__facts">
+          <Fact
+            label="Last reading"
+            value={
+              tank.serviceStatus === 'not_in_use'
+                ? 'No live feed'
+                : `${formatDateTime(tank.lastReadingAt)} (${formatAgo(tank.lastReadingAt, state.simTime)})`
+            }
+            late={inUse && readingAgeMin(tank, state.simTime) >= PROBE_STALE_MIN}
+          />
           <Fact label="Mapping" value={tank.probeVerified ? 'Verified' : 'Not verified'} late={!tank.probeVerified} />
           <Fact label="Last calibrated" value={formatDate(tank.lastCalibratedAt)} />
           <Fact

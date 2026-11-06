@@ -26,6 +26,11 @@
   color: var(--muted);
 }
 
+.licensee__stale {
+  color: var(--crit);
+  font-weight: 500;
+}
+
 .moh__grid {
   display: grid;
   grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);

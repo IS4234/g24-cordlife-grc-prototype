@@ -3,7 +3,7 @@ import { ln2BaselineFor } from './simulation'
 import type { AppState, Tank } from './types'
 
 // Bump when the shape of AppState changes, so browsers holding old data reload the seed
-export const STATE_VERSION = 8
+export const STATE_VERSION = 9
 
 // Demo starts on a Monday morning, Singapore time
 const START = '2026-10-26T09:00:00+08:00'
@@ -38,6 +38,8 @@ function tank(
     nextServiceDue: daysFrom(START, 90 - lastServicedDaysAgo),
     probeVerified: serviceStatus !== 'servicing',
     ln2LevelPct: serviceStatus === 'not_in_use' ? 0 : ln2BaselineFor(id),
+    // A tank not in use has no live feed; its last reading is from when it was retired
+    lastReadingAt: serviceStatus === 'not_in_use' ? daysFrom(START, -lastServicedDaysAgo) : new Date(START).toISOString(),
     lastCalibratedAt,
     calibrationDue: daysFrom(lastCalibratedAt, CALIBRATION_INTERVAL_DAYS),
     // Deterministic wobble so every reset starts from the same chart

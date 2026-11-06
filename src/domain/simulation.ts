@@ -25,7 +25,7 @@ export function baselineFor(tankId: string): number {
 
 const round1 = (n: number) => Math.round(n * 10) / 10
 
-function stepTank(tank: Tank): Tank {
+function stepTank(tank: Tank, now: string): Tank {
   if (tank.serviceStatus === 'not_in_use') return tank
 
   // With the supply cut, LN2 boils off; otherwise auto-fill tops it back up to its normal level
@@ -48,11 +48,20 @@ function stepTank(tank: Tank): Tank {
   }
   temp = round1(temp)
 
-  return { ...tank, ln2LevelPct: level, tempC: temp, history: [...tank.history, temp].slice(-HISTORY_LENGTH) }
+  // An offline probe sends nothing, so the dashboard keeps its last reading and its age grows
+  if (tank.probeOffline) return { ...tank, ln2LevelPct: level }
+  return {
+    ...tank,
+    ln2LevelPct: level,
+    tempC: temp,
+    lastReadingAt: now,
+    history: [...tank.history, temp].slice(-HISTORY_LENGTH),
+  }
 }
 
 function stepMinute(s: AppState): AppState {
-  const next = { ...s, simTime: addMinutes(s.simTime, 1), tanks: s.tanks.map(stepTank) }
+  const simTime = addMinutes(s.simTime, 1)
+  const next = { ...s, simTime, tanks: s.tanks.map((t) => stepTank(t, simTime)) }
   return applyDeadlines(detectTankIssues(next))
 }
 

@@ -4,7 +4,18 @@ import { withAudit } from './audit'
 import { activeSensorDeviation, activeSensorDeviations, createDeviation, type NewDeviation, updateDeviation } from './deviations'
 import { notifyMohIfDue } from './escalation'
 import { SYSTEM_ACTOR } from './people'
-import { atLeast, BREACH_LIMIT_C, dueAtFor, isInService, isMonitored, isOverdue, LN2_LOW_PCT, severityForBreach } from './rules'
+import {
+  atLeast,
+  BREACH_LIMIT_C,
+  dueAtFor,
+  isInService,
+  isMonitored,
+  isOverdue,
+  LN2_LOW_PCT,
+  PROBE_STALE_MIN,
+  readingAgeMin,
+  severityForBreach,
+} from './rules'
 import type { AppState, SensorTrigger, Tank } from './types'
 
 type Finding = Omit<NewDeviation, 'source' | 'raisedBy' | 'tankId' | 'trigger'>
@@ -99,6 +110,17 @@ const CHECKS: Partial<Record<SensorTrigger, Check>> = {
           category: 'equipment',
           severity: t.cbuCount > 0 ? 'major' : 'minor',
           evidence: [`Service due ${formatDateTime(t.nextServiceDue)}; checked at ${formatDateTime(s.simTime)}`],
+        }
+      : undefined,
+
+  probe_offline: (t, s) =>
+    isInService(t) && readingAgeMin(t, s.simTime) >= PROBE_STALE_MIN
+      ? {
+          title: `${t.id} probe offline`,
+          description: `${t.id} probe has not reported for ${readingAgeMin(t, s.simTime)} minutes. The dashboard is still showing its last reading of ${t.tempC} °C, so nobody knows the tank's real temperature${t.cbuCount > 0 ? ` while it holds ${units(t)}` : ''}.`,
+          category: 'equipment',
+          severity: t.cbuCount > 0 ? 'critical' : 'major',
+          evidence: [`Last reading ${formatDateTime(t.lastReadingAt)}; checked at ${formatDateTime(s.simTime)}`],
         }
       : undefined,
 

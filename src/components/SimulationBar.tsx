@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { isMonitored } from '../domain/rules'
+import { isInService, isMonitored } from '../domain/rules'
 import { SPEEDS, type Speed, useSimulation } from '../hooks/useSimulation'
-import { advanceClock, injectUnmonitoredUnits, injectWarmingFault } from '../store/actions'
+import { advanceClock, injectProbeDropout, injectUnmonitoredUnits, injectWarmingFault } from '../store/actions'
 import { useAppState } from '../store/store'
 import './SimulationBar.css'
 
@@ -11,6 +11,9 @@ export function SimulationBar() {
   const candidates = tanks.filter((t) => isMonitored(t) && !t.fault)
   const [faultTank, setFaultTank] = useState('T-07')
   const selected = candidates.some((t) => t.id === faultTank) ? faultTank : (candidates[0]?.id ?? '')
+  const probeCandidates = tanks.filter((t) => isInService(t) && !t.probeOffline)
+  const [probeTank, setProbeTank] = useState('T-02')
+  const probeSelected = probeCandidates.some((t) => t.id === probeTank) ? probeTank : (probeCandidates[0]?.id ?? '')
   // Only an empty tank under maintenance can be used to show units left unmonitored
   const gapTank = tanks.find((t) => t.serviceStatus === 'servicing' && t.cbuCount === 0)
 
@@ -59,6 +62,27 @@ export function SimulationBar() {
           onClick={() => injectWarmingFault(selected)}
         >
           Cut LN2 supply
+        </button>
+      </div>
+
+      <div className="sim__group">
+        <label className="sim__field">
+          <span>Simulate probe dropout</span>
+          <select id="sim-probe-tank" value={probeSelected} onChange={(e) => setProbeTank(e.target.value)}>
+            {probeCandidates.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.id}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          className="btn btn--ghost btn--small"
+          disabled={!probeSelected}
+          onClick={() => injectProbeDropout(probeSelected)}
+        >
+          Stop readings
         </button>
       </div>
 

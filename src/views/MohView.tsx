@@ -10,7 +10,7 @@ import { describeExcursion, excursionSummary } from '../domain/excursion'
 import { computeKris } from '../domain/kri'
 import { DEFAULT_PERSON, personName } from '../domain/people'
 import { computePosture, type Rating } from '../domain/posture'
-import { atLeast, BREACH_LIMIT_C } from '../domain/rules'
+import { atLeast, BREACH_LIMIT_C, isInService, PROBE_STALE_MIN, readingAgeMin } from '../domain/rules'
 import type { DeviationCategory, Severity } from '../domain/types'
 import { formatDateTime } from '../lib/format'
 import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL, type Tone } from '../lib/labels'
@@ -58,6 +58,10 @@ export function MohView() {
     .filter((d) => new Date(d.raisedAt).getTime() >= thirtyDaysAgo)
     .forEach((d) => byCategory.set(d.category, (byCategory.get(d.category) ?? 0) + 1))
   const approvedChanges = k.changeRequests.reduce((n, r) => n + r.approved, 0)
+  // Figures are only as current as the oldest live tank reading
+  const liveTanks = state.tanks.filter(isInService)
+  const oldestReading = liveTanks.map((t) => t.lastReadingAt).sort()[0] ?? state.simTime
+  const silent = liveTanks.filter((t) => readingAgeMin(t, state.simTime) >= PROBE_STALE_MIN).length
 
   return (
     <div className="moh">
@@ -73,6 +77,18 @@ export function MohView() {
         <div>
           <span className="licensee__label">Data feed</span>
           <span>Continuous · alerts and full deviation register, read-only</span>
+        </div>
+        <div>
+          <span className="licensee__label">Data as of</span>
+          <span>
+            <span className="mono">{formatDateTime(oldestReading)}</span>
+            {silent > 0 && (
+              <span className="licensee__stale">
+                {' · '}
+                {silent} {silent === 1 ? 'tank' : 'tanks'} not reporting
+              </span>
+            )}
+          </span>
         </div>
       </div>
 

@@ -11,6 +11,13 @@ export const LN2_LOW_PCT = 25
 /** Below this LN2 level there is not enough nitrogen to hold vapour-phase temperature */
 export const LN2_EMPTY_PCT = 10
 export const CALIBRATION_INTERVAL_DAYS = 365
+/** A probe silent for this long is treated as offline; its last reading can no longer be trusted */
+export const PROBE_STALE_MIN = 10
+
+/** Whole minutes since the tank's probe last reported */
+export function readingAgeMin(tank: Tank, now: string): number {
+  return Math.max(0, Math.round((new Date(now).getTime() - new Date(tank.lastReadingAt).getTime()) / 60_000))
+}
 
 export type TempStatus = 'ok' | 'warning' | 'breach' | 'empty' | 'offline'
 

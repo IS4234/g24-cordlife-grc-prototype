@@ -39,3 +39,10 @@ export function formatDue(dueAt: string, now: string): { text: string; overdue: 
   if (diff <= 0) return { text: diff === 0 ? 'due now' : `overdue ${formatSpan(-diff)}`, overdue: true }
   return { text: `in ${formatSpan(diff)}`, overdue: false }
 }
+
+/** How long ago something happened, relative to the simulated clock */
+export function formatAgo(iso: string, now: string): string {
+  const minutes = Math.round((new Date(now).getTime() - new Date(iso).getTime()) / 60_000)
+  if (minutes < 1) return 'just now'
+  return `${formatSpan(minutes)} ago`
+}
