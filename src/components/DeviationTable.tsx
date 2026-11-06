@@ -1,7 +1,7 @@
 import { personName } from '../domain/people'
 import { excursionSummary } from '../domain/excursion'
 import type { Deviation } from '../domain/types'
-import { formatDue, formatSpan } from '../lib/format'
+import { formatDateTime, formatDue, formatSpan } from '../lib/format'
 import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL } from '../lib/labels'
 import { Pill } from './Pill'
 import { SeverityPill } from './Severity'
@@ -29,7 +29,7 @@ export function DeviationTable({ deviations, now, onSelect }: DeviationTableProp
             <th>Status</th>
             <th>Level</th>
             <th>Owner</th>
-            <th>Next escalation</th>
+            <th>Escalation deadline</th>
           </tr>
         </thead>
         <tbody>
@@ -38,7 +38,7 @@ export function DeviationTable({ deviations, now, onSelect }: DeviationTableProp
             const closed = d.status === 'closed'
             return (
               <tr key={d.id} onClick={() => onSelect(d.id)}>
-                <td>
+                <td className="dev-table__id-cell">
                   <button type="button" className="dev-table__id mono" onClick={() => onSelect(d.id)}>
                     {d.id}
                   </button>
@@ -52,10 +52,10 @@ export function DeviationTable({ deviations, now, onSelect }: DeviationTableProp
                     <ExcursionNote deviation={d} now={now} />
                   </span>
                 </td>
-                <td>
+                <td data-label="Severity">
                   <SeverityPill severity={d.severity} />
                 </td>
-                <td>
+                <td data-label="Status">
                   {d.dismissed ? (
                     <Pill tone="neutral">Dismissed</Pill>
                   ) : (
@@ -63,15 +63,33 @@ export function DeviationTable({ deviations, now, onSelect }: DeviationTableProp
                   )}
                   {d.pendingChange && <span className="dev-table__flag">Change requested</span>}
                 </td>
-                <td>
+                <td data-label="Level">
                   <span className="dev-table__level">
                     {LEVEL_LABEL[d.escalationLevel]}
                     {d.mohNotifiedAt && <span className="dev-table__moh">MOH notified</span>}
                   </span>
                 </td>
-                <td>{d.ownerId ? personName(d.ownerId) : <span className="dev-table__none">Unassigned</span>}</td>
-                <td className={!closed && due.overdue ? 'dev-table__due dev-table__due--late' : 'dev-table__due'}>
-                  {closed ? '—' : due.text}
+                <td data-label="Owner">
+                  {d.ownerId ? personName(d.ownerId) : <span className="dev-table__none">Unassigned</span>}
+                </td>
+                <td
+                  data-label="Escalation deadline"
+                  className={!closed && due.overdue ? 'dev-table__due dev-table__due--late' : 'dev-table__due'}
+                >
+                  {closed ? (
+                    <>
+                      <span>Closed</span>
+                      {d.closedAt && <span className="dev-table__when">{formatDateTime(d.closedAt)}</span>}
+                    </>
+                  ) : (
+                    <>
+                      <span>{formatDateTime(d.dueAt)}</span>
+                      {/* Nothing escalates past MOH, so there the deadline is MOH's response time */}
+                      <span className="dev-table__when">
+                        {d.escalationLevel === 'moh' ? `Response due ${due.text}` : due.text}
+                      </span>
+                    </>
+                  )}
                 </td>
               </tr>
             )

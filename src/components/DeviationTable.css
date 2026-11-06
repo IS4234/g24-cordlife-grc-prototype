@@ -96,7 +96,17 @@
   font-variant-numeric: tabular-nums;
 }
 
-.dev-table__due--late {
+.dev-table__due > span {
+  display: block;
+}
+
+.dev-table__when {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dev-table__due--late,
+.dev-table__due--late .dev-table__when {
   color: var(--crit);
   font-weight: 500;
 }
@@ -114,4 +124,65 @@
 .dev-table__excursion--live {
   color: var(--crit);
   font-weight: 500;
+}
+
+/* Below laptop width each deviation becomes a card, so no column is hidden off to the side */
+@media (max-width: 1000px) {
+  .dev-table-wrap {
+    overflow-x: visible;
+  }
+
+  .dev-table,
+  .dev-table tbody,
+  .dev-table tr,
+  .dev-table td {
+    display: block;
+  }
+
+  .dev-table {
+    min-width: 0;
+  }
+
+  .dev-table thead {
+    display: none;
+  }
+
+  .dev-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px 16px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dev-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .dev-table td {
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .dev-table td.dev-table__id-cell,
+  .dev-table td.dev-table__title {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .dev-table td.dev-table__title {
+    display: grid;
+    gap: 2px;
+  }
+
+  .dev-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
 }
