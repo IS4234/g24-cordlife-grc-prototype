@@ -20,6 +20,15 @@ import './MohView.css'
 
 const ACTOR = DEFAULT_PERSON.moh
 
+type AlertFilter = 'unacknowledged' | 'acknowledged' | 'all'
+
+// Unacknowledged first: those are the alerts waiting on MOH, like unread mail
+const ALERT_FILTERS: { id: AlertFilter; label: string; empty: string }[] = [
+  { id: 'unacknowledged', label: 'Unacknowledged', empty: 'No alerts waiting for acknowledgement.' },
+  { id: 'acknowledged', label: 'Acknowledged', empty: 'No alerts have been acknowledged yet.' },
+  { id: 'all', label: 'All', empty: 'No alerts have been pushed to MOH.' },
+]
+
 const REPORTED: Record<Severity, string> = { critical: 'a critical', major: 'a major or critical', minor: 'any' }
 
 // MOH chooses what it looks at; the licensee cannot hide anything from this register
@@ -39,12 +48,22 @@ export function MohView() {
   const state = useAppState()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [minSeverity, setMinSeverity] = useState<Severity>('major')
+  const [alertFilter, setAlertFilter] = useState<AlertFilter>('unacknowledged')
   const posture = computePosture(state)
   const k = computeKris(state)
   const rating = RATING[posture.rating]
 
-  const alerts = state.deviations
-    .filter((d) => d.mohNotifiedAt)
+  const pushed = state.deviations.filter((d) => d.mohNotifiedAt)
+  const alertCounts: Record<AlertFilter, number> = {
+    unacknowledged: pushed.filter((d) => !d.mohAcknowledgedAt).length,
+    acknowledged: pushed.filter((d) => d.mohAcknowledgedAt).length,
+    all: pushed.length,
+  }
+  // Acknowledged means MOH has seen it, not that it is fixed, so open deviations still sort first
+  const alerts = pushed
+    .filter((d) =>
+      alertFilter === 'all' ? true : alertFilter === 'acknowledged' ? d.mohAcknowledgedAt : !d.mohAcknowledgedAt,
+    )
     .sort((a, b) => {
       if (isActive(a) !== isActive(b)) return isActive(a) ? -1 : 1
       return new Date(b.mohNotifiedAt!).getTime() - new Date(a.mohNotifiedAt!).getTime()
@@ -129,14 +148,33 @@ export function MohView() {
 
       <section className="moh__section">
         <div className="moh__head">
-          <h2>Alerts</h2>
-          <span>
-            Pushed automatically when {REPORTED[state.settings.mohNotifySeverity]} deviation reaches the Board, or
-            escalated to MOH directly
-          </span>
+          <div className="moh__title">
+            <h2>Alerts</h2>
+            <span>
+              Pushed automatically when {REPORTED[state.settings.mohNotifySeverity]} deviation reaches the Board, or
+              escalated to MOH directly
+            </span>
+          </div>
+          <div className="segmented" role="tablist" aria-label="Filter alerts">
+            {ALERT_FILTERS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                role="tab"
+                aria-selected={alertFilter === f.id}
+                className={alertFilter === f.id ? 'segmented__btn segmented__btn--active' : 'segmented__btn'}
+                onClick={() => setAlertFilter(f.id)}
+              >
+                {f.label}
+                <span className={f.id === 'unacknowledged' && alertCounts[f.id] > 0 ? 'moh__count moh__count--due' : 'moh__count'}>
+                  {alertCounts[f.id]}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
         {alerts.length === 0 ? (
-          <p className="moh__empty">No alerts have been pushed to MOH.</p>
+          <p className="moh__empty">{ALERT_FILTERS.find((f) => f.id === alertFilter)!.empty}</p>
         ) : (
           <ul className="alert-feed">
             {alerts.map((d) => {

@@ -219,6 +219,23 @@
   align-self: center;
 }
 
+.moh__head .moh__count {
+  display: inline-block;
+  min-width: 20px;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: #e3e8ea;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.moh__head .moh__count--due {
+  background: var(--crit);
+  color: var(--white);
+}
+
 .moh__empty {
   margin: 0;
   padding: 24px;
