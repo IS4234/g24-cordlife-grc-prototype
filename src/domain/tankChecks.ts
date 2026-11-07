@@ -177,6 +177,29 @@ function upgrade(s: AppState, id: string, trigger: SensorTrigger, finding: Findi
   return notifyMohIfDue(next, id)
 }
 
+/**
+ * Raises an open deviation's severity when the tank's situation now calls for more, even though
+ * the condition itself hasn't changed (for example units loaded into a tank with low LN2).
+ */
+function raiseSeverityIfNeeded(s: AppState, d: Deviation, tank: Tank, finding: Finding): AppState {
+  if (atLeast(d.severity, finding.severity)) return s
+  const newDue = dueAtFor(finding.severity, s.simTime, s.settings)
+  let next = updateDeviation(s, d.id, (cur) => ({
+    ...cur,
+    severity: finding.severity,
+    dueAt: newDue < cur.dueAt ? newDue : cur.dueAt,
+    description: finding.description,
+    evidence: [...cur.evidence, ...finding.evidence],
+  }))
+  next = withAudit(next, {
+    actorId: SYSTEM_ACTOR,
+    action: 'deviation.upgraded',
+    entityId: d.id,
+    detail: `Severity raised from ${SEVERITY[d.severity].label} to ${SEVERITY[finding.severity].label}: ${tank.id} now holds ${units(tank)} while the ${TRIGGER_LABEL[d.trigger ?? 'breach']} condition continues.`,
+  })
+  return notifyMohIfDue(next, d.id)
+}
+
 function checkStorage(s: AppState, tank: Tank): AppState {
   // The most severe stage the tank is in right now
   let stage: { trigger: SensorTrigger; finding: Finding } | undefined
@@ -190,7 +213,9 @@ function checkStorage(s: AppState, tank: Tank): AppState {
   if (!open) return raise(s, tank, stage.trigger, stage.finding)
 
   const reached = STAGE_TRIGGERS.indexOf(open.trigger ?? 'breach')
-  return STAGE_TRIGGERS.indexOf(stage.trigger) > reached ? upgrade(s, open.id, stage.trigger, stage.finding) : s
+  const now = STAGE_TRIGGERS.indexOf(stage.trigger)
+  if (now > reached) return upgrade(s, open.id, stage.trigger, stage.finding)
+  return now === reached ? raiseSeverityIfNeeded(s, open, tank, stage.finding) : s
 }
 
 /**
@@ -291,8 +316,9 @@ export function detectTankIssues(s: AppState): AppState {
     next = trackExcursion(checkStorage(next, tank), tank)
     for (const [trigger, check] of Object.entries(CHECKS) as [SensorTrigger, Check][]) {
       const finding = check(tank, next)
-      if (!finding || activeSensorDeviation(next, tank.id, trigger)) continue
-      next = raise(next, tank, trigger, finding)
+      if (!finding) continue
+      const open = activeSensorDeviation(next, tank.id, trigger)
+      next = open ? raiseSeverityIfNeeded(next, open, tank, finding) : raise(next, tank, trigger, finding)
     }
   }
   return next

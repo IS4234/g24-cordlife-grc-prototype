@@ -9,6 +9,8 @@ export interface Tank {
   cbuCount: number
   /** Latest probe reading in °C */
   tempC: number
+  /** Simulated physical temperature. Differs from tempC only while the probe is offline. */
+  actualTempC: number
   serviceStatus: ServiceStatus
   lastServicedAt: string
   nextServiceDue: string

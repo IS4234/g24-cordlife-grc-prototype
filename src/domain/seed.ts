@@ -3,7 +3,7 @@ import { ln2BaselineFor } from './simulation'
 import type { AppState, Tank } from './types'
 
 // Bump when the shape of AppState changes, so browsers holding old data reload the seed
-export const STATE_VERSION = 9
+export const STATE_VERSION = 10
 
 // Demo starts on a Monday morning, Singapore time
 const START = '2026-10-26T09:00:00+08:00'
@@ -32,6 +32,7 @@ function tank(
     capacity: 6000,
     cbuCount,
     tempC,
+    actualTempC: tempC,
     serviceStatus,
     lastServicedAt: daysFrom(START, -lastServicedDaysAgo),
     // Tanks are serviced every 90 days

@@ -37,7 +37,8 @@ function stepTank(tank: Tank, now: string): Tank {
   level = round1(level)
 
   const base = baselineFor(tank.id)
-  let temp = tank.tempC
+  // The tank warms or cools whether or not anyone is measuring it
+  let temp = tank.actualTempC
   if (level < LN2_EMPTY_PCT) {
     // Without enough nitrogen the tank warms towards room temperature, never past it
     temp = Math.min(AMBIENT_C, temp + WARMING_PER_MIN + (Math.random() - 0.5) * 0.4)
@@ -48,11 +49,13 @@ function stepTank(tank: Tank, now: string): Tank {
   }
   temp = round1(temp)
 
-  // An offline probe sends nothing, so the dashboard keeps its last reading and its age grows
-  if (tank.probeOffline) return { ...tank, ln2LevelPct: level }
+  // An offline probe sends nothing, so the dashboard keeps its last reading and its age grows,
+  // while the physical temperature carries on changing underneath
+  if (tank.probeOffline) return { ...tank, ln2LevelPct: level, actualTempC: temp }
   return {
     ...tank,
     ln2LevelPct: level,
+    actualTempC: temp,
     tempC: temp,
     lastReadingAt: now,
     history: [...tank.history, temp].slice(-HISTORY_LENGTH),
