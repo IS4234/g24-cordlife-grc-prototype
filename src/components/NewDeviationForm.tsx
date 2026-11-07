@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { atLeast, severityForManual } from '../domain/rules'
+import { atLeast, dueAtFor, severityForManual } from '../domain/rules'
 import type { DeviationCategory, Severity, Tank } from '../domain/types'
-import { CATEGORY_LABEL, SEVERITY } from '../lib/labels'
+import { formatDateTime, formatSpan } from '../lib/format'
+import { CATEGORY_LABEL, LEVEL_LABEL, SEVERITY } from '../lib/labels'
 import { raiseDeviation } from '../store/actions'
+import { useAppState } from '../store/store'
 import { SeverityPill } from './Severity'
 
 interface NewDeviationFormProps {
@@ -27,6 +29,11 @@ export function NewDeviationForm({ tanks, actorId, onDone }: NewDeviationFormPro
   const minimum = severityForManual(category, units)
   const allowed = SEVERITIES.filter((s) => atLeast(s, minimum))
   const severity = chosen && atLeast(chosen, minimum) ? chosen : minimum
+
+  // Preview the deadline the deviation will get, computed exactly as on submission
+  const { settings, simTime } = useAppState()
+  const deadlineMin = settings.deadlineMinutes[severity]
+  const dueAt = dueAtFor(severity, simTime, settings)
 
   return (
     <form
@@ -128,6 +135,16 @@ export function NewDeviationForm({ tanks, actorId, onDone }: NewDeviationFormPro
           ))}
         </select>
       </label>
+
+      <div className="rule-box rule-box--stacked" aria-live="polite">
+        <span>
+          <strong>Escalation deadline: {formatDateTime(dueAt)}</strong> ({formatSpan(deadlineMin)} from now)
+        </span>
+        <span className="field__hint">
+          Set by the Board's risk appetite for {SEVERITY[severity].label} deviations, not by the raiser. If it is still
+          open then, it escalates to {LEVEL_LABEL.cgo}.
+        </span>
+      </div>
 
       <div>
         <button type="submit" className="btn">
