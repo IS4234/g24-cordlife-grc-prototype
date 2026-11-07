@@ -13,7 +13,7 @@ import {
 import type { AppState, Tank } from '../domain/types'
 import { formatAgo, formatDate, formatDateTime } from '../lib/format'
 import { DEVIATION_STATUS, SERVICE_LABEL, tankBadge } from '../lib/labels'
-import { loadUnits, recordCalibration } from '../store/actions'
+import { loadUnits, recordCalibration, verifyProbeMapping } from '../store/actions'
 import { Ln2Bar } from './TankCard'
 import { Pill } from './Pill'
 import { SeverityPill } from './Severity'
@@ -49,7 +49,7 @@ export function TankDetail({ tank, state, actorId }: TankDetailProps) {
         />
       </dl>
 
-      {tank.serviceStatus !== 'not_in_use' && <LoadUnitsForm key={tank.id} tank={tank} actorId={actorId} />}
+      {tank.serviceStatus !== 'not_in_use' && <LoadUnitsForm key={tank.id} tank={tank} state={state} actorId={actorId} />}
 
       <section className="detail__section">
         <h4>Liquid nitrogen</h4>
@@ -83,13 +83,16 @@ export function TankDetail({ tank, state, actorId }: TankDetailProps) {
           />
         </dl>
         {tank.serviceStatus !== 'not_in_use' && (
-          <button
-            type="button"
-            className="btn btn--ghost btn--small tank-detail__action"
-            onClick={() => recordCalibration(tank.id, actorId)}
-          >
-            Record calibration
-          </button>
+          <div className="tank-detail__buttons">
+            {!tank.probeVerified && (
+              <button type="button" className="btn btn--small" onClick={() => verifyProbeMapping(tank.id, actorId)}>
+                Verify probe mapping
+              </button>
+            )}
+            <button type="button" className="btn btn--ghost btn--small" onClick={() => recordCalibration(tank.id, actorId)}>
+              Record calibration
+            </button>
+          </div>
         )}
       </section>
 
@@ -153,10 +156,10 @@ function Fact({ label, value, late }: { label: string; value: string; late?: boo
   )
 }
 
-function LoadUnitsForm({ tank, actorId }: { tank: Tank; actorId: string }) {
+function LoadUnitsForm({ tank, state, actorId }: { tank: Tank; state: AppState; actorId: string }) {
   const spare = tank.capacity - tank.cbuCount
   const [count, setCount] = useState(Math.min(500, spare))
-  const blocked = loadBlockReason(tank)
+  const blocked = loadBlockReason(tank, state.settings, state.simTime)
   const valid = Number.isInteger(count) && count > 0 && count <= spare
 
   return (

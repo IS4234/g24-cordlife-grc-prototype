@@ -163,7 +163,7 @@ export function recordCalibration(tankId: string, personId: string) {
 export function loadUnits(tankId: string, count: number, personId: string) {
   setState((s) => {
     const tank = s.tanks.find((t) => t.id === tankId)
-    if (!tank || loadBlockReason(tank) || !Number.isInteger(count) || count <= 0) return s
+    if (!tank || loadBlockReason(tank, s.settings, s.simTime) || !Number.isInteger(count) || count <= 0) return s
     if (tank.cbuCount + count > tank.capacity) return s
     const next = withAudit(
       updateTank(s, tankId, (t) => ({ ...t, cbuCount: t.cbuCount + count })),

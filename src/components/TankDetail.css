@@ -12,10 +12,6 @@
   color: var(--muted);
 }
 
-.tank-detail__action {
-  justify-self: start;
-}
-
 .tank-detail__devs {
   margin: 0;
   padding: 0;
@@ -62,4 +58,10 @@
   background: var(--warn-tint);
   color: var(--warn);
   font-size: 13px;
+}
+
+.tank-detail__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }

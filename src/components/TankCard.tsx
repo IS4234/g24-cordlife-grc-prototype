@@ -125,7 +125,11 @@ export function TankCard(props: TankCardProps) {
           {excursionText(d, now)}
         </p>
       ))}
-      {(tank.fault || tank.probeOffline || tank.serviceStatus === 'servicing' || status === 'empty') && (
+      {(tank.fault ||
+        tank.probeOffline ||
+        tank.serviceStatus === 'servicing' ||
+        (!tank.probeVerified && tank.serviceStatus !== 'not_in_use') ||
+        status === 'empty') && (
         <div className="tank__actions">
           {tank.fault && (
             <button type="button" className="btn btn--small" onClick={own(onRestore)}>
@@ -137,7 +141,8 @@ export function TankCard(props: TankCardProps) {
               Restore probe feed
             </button>
           )}
-          {tank.serviceStatus === 'servicing' && !tank.probeVerified && (
+          {/* Available whenever mapping is unverified, including after an early return to service */}
+          {!tank.probeVerified && tank.serviceStatus !== 'not_in_use' && (
             <button type="button" className="btn btn--small" onClick={own(onVerifyProbe)}>
               Verify probe mapping
             </button>

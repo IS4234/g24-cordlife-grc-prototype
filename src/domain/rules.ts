@@ -30,10 +30,19 @@ export function isMonitored(tank: Tank): boolean {
   return tank.cbuCount > 0 && isInService(tank)
 }
 
-/** Why units cannot be loaded into this tank right now, or nothing if they can */
-export function loadBlockReason(tank: Tank): string | undefined {
+/**
+ * Why units cannot be loaded into this tank right now, or nothing if they can. Units only go
+ * into a tank that is in service, holding temperature, and whose readings can be trusted.
+ */
+export function loadBlockReason(tank: Tank, settings: RiskSettings, now: string): string | undefined {
   if (!isInService(tank)) return 'Units can only be loaded into a tank that is in service.'
   if (!tank.probeVerified) return 'Verify the probe mapping first. Units must not go into a tank whose readings cannot be trusted.'
+  if (readingAgeMin(tank, now) >= PROBE_STALE_MIN) {
+    return `The probe has not reported for ${readingAgeMin(tank, now)} minutes, so the tank's current temperature is unknown.`
+  }
+  if (tank.tempC > BREACH_LIMIT_C) return `The tank is above the ${BREACH_LIMIT_C} °C breach limit.`
+  if (tank.tempC > settings.warningC) return `The tank is warmer than the ${settings.warningC} °C warning level.`
+  if (tank.ln2LevelPct < LN2_LOW_PCT) return `LN2 is below the ${LN2_LOW_PCT}% refill level. Refill the tank first.`
   if (tank.cbuCount >= tank.capacity) return 'This tank is full.'
   return undefined
 }
