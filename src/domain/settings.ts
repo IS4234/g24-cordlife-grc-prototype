@@ -8,6 +8,8 @@ import { BREACH_LIMIT_C, dueAtFor } from './rules'
 import type { AppState, RiskSettings, Severity } from './types'
 
 export const SETTINGS_ENTITY = 'RISK-APPETITE'
+/** Every risk-appetite change needs a reason at least this long */
+export const MIN_REASON = 10
 
 const SEVERITIES: Severity[] = ['critical', 'major', 'minor']
 
@@ -43,7 +45,7 @@ function describeChanges(prev: RiskSettings, next: RiskSettings): string[] {
 
 /** Only the Board sets risk appetite. Every change is recorded with a reason. */
 export function updateSettings(s: AppState, next: RiskSettings, actorId: string, reason: string): AppState {
-  if (getPerson(actorId)?.role !== 'board' || settingsErrors(next).length || reason.trim().length < 10) return s
+  if (getPerson(actorId)?.role !== 'board' || settingsErrors(next).length || reason.trim().length < MIN_REASON) return s
   const changes = describeChanges(s.settings, next)
   if (changes.length === 0) return s
   const saved = withAudit(

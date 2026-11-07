@@ -91,3 +91,8 @@
 .risk__group .field {
   align-content: start;
 }
+
+.risk__why {
+  font-size: 13px;
+  color: var(--warn);
+}

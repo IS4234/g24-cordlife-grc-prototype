@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { personName } from '../domain/people'
 import { BREACH_LIMIT_C } from '../domain/rules'
-import { settingsErrors } from '../domain/settings'
+import { MIN_REASON, settingsErrors } from '../domain/settings'
 import type { AuditEntry, RiskSettings, Severity } from '../domain/types'
 import { formatDateTime } from '../lib/format'
 import { SEVERITY } from '../lib/labels'
@@ -22,6 +22,15 @@ export function RiskSettingsPanel({ settings, actorId, lastChange }: RiskSetting
   const [reason, setReason] = useState('')
   const errors = settingsErrors(draft)
   const changed = JSON.stringify(draft) !== JSON.stringify(settings)
+  const reasonLength = reason.trim().length
+  // Say why Save is disabled rather than leaving the Board to guess
+  const saveBlocker = !changed
+    ? 'Change a setting to save.'
+    : errors.length > 0
+      ? 'Fix the errors above to save.'
+      : reasonLength < MIN_REASON
+        ? `Enter a reason of at least ${MIN_REASON} characters to save.`
+        : null
 
   const setDeadline = (s: Severity, value: number) =>
     setDraft({ ...draft, deadlineMinutes: { ...draft.deadlineMinutes, [s]: value } })
@@ -111,9 +120,14 @@ export function RiskSettingsPanel({ settings, actorId, lastChange }: RiskSetting
         </fieldset>
 
         <label className="field risk__reason">
-          Reason for change
+          Reason for change (required)
+          <span className="field__hint">
+            At least {MIN_REASON} characters, recorded in the audit log with the change. {reasonLength}/{MIN_REASON}
+          </span>
           <input
             id="risk-reason"
+            required
+            minLength={MIN_REASON}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="e.g. ARC meeting 12 Nov: shorten critical deadline after audit finding"
@@ -129,13 +143,18 @@ export function RiskSettingsPanel({ settings, actorId, lastChange }: RiskSetting
         )}
 
         <div className="risk__actions">
-          <button type="submit" className="btn btn--small" disabled={!changed || errors.length > 0 || reason.trim().length < 10}>
+          <button type="submit" className="btn btn--small" disabled={!!saveBlocker} aria-describedby="risk-save-why">
             Save risk appetite
           </button>
           {changed && (
             <button type="button" className="btn btn--ghost btn--small" onClick={() => setDraft(settings)}>
               Discard changes
             </button>
+          )}
+          {saveBlocker && changed && (
+            <span id="risk-save-why" className="risk__why">
+              {saveBlocker}
+            </span>
           )}
           {lastChange && !changed && (
             <span className="risk__saved">
