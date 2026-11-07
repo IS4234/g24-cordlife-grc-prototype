@@ -278,7 +278,8 @@ export function MohView() {
           <KpiTile
             label="Missed escalation deadlines"
             value={String(k.missedDeadlines)}
-            tone={k.missedDeadlines ? 'crit' : 'ok'}
+            sub={`${k.overdueNow} overdue now${k.overdueMohResponses ? ` · ${k.overdueMohResponses} MOH response overdue` : ''}`}
+            tone={k.missedDeadlines || k.overdueNow ? 'crit' : 'ok'}
           />
           <KpiTile
             label="Approved downgrades or dismissals"

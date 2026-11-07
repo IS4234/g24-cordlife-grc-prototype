@@ -56,9 +56,9 @@ export function BoardView() {
           <KpiTile
             label="Missed escalation deadlines"
             value={String(k.missedDeadlines)}
-            sub={`${k.overdueNow} overdue now`}
+            sub={`${k.overdueNow} overdue now${k.overdueMohResponses ? ` · ${k.overdueMohResponses} MOH response overdue` : ''}`}
             reg="Reg 8(2)(k)"
-            tone={k.missedDeadlines ? 'crit' : 'ok'}
+            tone={k.missedDeadlines || k.overdueNow ? 'crit' : 'ok'}
           />
           <KpiTile
             label="Pushed to MOH"

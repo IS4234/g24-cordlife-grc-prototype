@@ -29,7 +29,8 @@ const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)))
 export function computePosture(s: AppState): Posture {
   const k = computeKris(s)
   const active = s.deviations.filter(isActive)
-  const onTime = active.filter((d) => d.escalationLevel === 'moh' || !isOverdue(d.dueAt, s.simTime)).length
+  // A late response to MOH is late too, even though there is no higher level to escalate to
+  const onTime = active.filter((d) => !isOverdue(d.dueAt, s.simTime)).length
   const highLevel = active.filter((d) => d.escalationLevel === 'board' || d.escalationLevel === 'moh').length
   const approvedChanges = k.changeRequests.reduce((n, r) => n + r.approved, 0)
 

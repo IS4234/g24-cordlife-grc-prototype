@@ -33,7 +33,10 @@ export interface Kris {
   dismissedDeviations: number
   /** Share of deviations closed after investigation; dismissals don't count as resolved */
   resolvedPct: number
+  /** Open deviations past their deadline, at any level */
   overdueNow: number
+  /** Of those, deviations at MOH whose response deadline has passed (they can't escalate further) */
+  overdueMohResponses: number
   missedDeadlines: number
   mohNotified: number
   openByLevel: Record<EscalationLevel, number>
@@ -105,7 +108,8 @@ export function computeKris(s: AppState): Kris {
     closedDeviations: closed,
     dismissedDeviations: dismissed,
     resolvedPct: pct(closed, s.deviations.length),
-    overdueNow: active.filter((d) => d.escalationLevel !== 'moh' && isOverdue(d.dueAt, s.simTime)).length,
+    overdueNow: active.filter((d) => isOverdue(d.dueAt, s.simTime)).length,
+    overdueMohResponses: active.filter((d) => d.escalationLevel === 'moh' && isOverdue(d.dueAt, s.simTime)).length,
     missedDeadlines: s.audit.filter((a) => a.action === 'deviation.escalated' && a.actorId === SYSTEM_ACTOR).length,
     mohNotified: s.deviations.filter((d) => d.mohNotifiedAt).length,
     openByLevel,
