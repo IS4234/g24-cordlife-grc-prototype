@@ -3,7 +3,7 @@ import { ln2BaselineFor } from './simulation'
 import type { AppState, Tank } from './types'
 
 // Bump when the shape of AppState changes, so browsers holding old data reload the seed
-export const STATE_VERSION = 10
+export const STATE_VERSION = 11
 
 // Demo starts on a Monday morning, Singapore time
 const START = '2026-10-26T09:00:00+08:00'
@@ -105,15 +105,17 @@ export function createSeedState(): AppState {
         id: 'DEV-2026-002',
         title: 'Controlled-rate freezer run did not complete profile',
         description:
-          'Freezer FRZ-02 stopped 4 minutes before end of profile for unit batch B-1047. Units held in quarantine.',
+          'Freezer FRZ-02 stopped 4 minutes before end of profile during a validation run with no units loaded. Batch B-1047 has been held back until the freezer is checked.',
         source: 'manual',
         category: 'freezing',
-        severity: 'minor',
+        // Follows the manual severity rule: a freezing failure is at least Major, Critical once units are affected
+        unitsAffected: 0,
+        severity: 'major',
         status: 'open',
         escalationLevel: 'operator',
         raisedBy: 'p-aisyah',
-        raisedAt: minutesFrom(START, -3 * 60),
-        dueAt: minutesFrom(START, 21 * 60),
+        raisedAt: minutesFrom(START, -60),
+        dueAt: minutesFrom(START, -60 + 240),
         evidence: [],
         approvals: [],
       },
@@ -174,11 +176,11 @@ export function createSeedState(): AppState {
       },
       {
         id: 'AUD-0005',
-        at: minutesFrom(START, -3 * 60),
+        at: minutesFrom(START, -60),
         actorId: 'p-aisyah',
         action: 'deviation.created',
         entityId: 'DEV-2026-002',
-        detail: 'Raised minor deviation: Controlled-rate freezer run did not complete profile',
+        detail: 'Raised major deviation: Controlled-rate freezer run did not complete profile',
       },
       {
         id: 'AUD-0006',
