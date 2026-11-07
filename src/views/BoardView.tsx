@@ -28,7 +28,7 @@ export function BoardView() {
           <KpiTile
             label="Tanks within limit"
             value={`${k.tanksInLimitPct}%`}
-            sub={`${k.tanksInLimit} of ${k.monitoredTanks} monitored`}
+            sub={`${k.tanksInLimit} of ${k.monitoredTanks} monitored${k.tanksUnknown ? ` · ${k.tanksUnknown} unverified or no data` : ''}`}
             reg="Reg 8(2)(k)"
             tone={k.tanksInLimitPct < 100 ? 'crit' : 'ok'}
           />

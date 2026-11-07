@@ -266,6 +266,7 @@ export function MohView() {
           <KpiTile
             label="Tanks within limit"
             value={`${k.tanksInLimitPct}%`}
+            sub={k.tanksUnknown ? `${k.tanksUnknown} unverified or no data` : undefined}
             tone={k.tanksInLimitPct < 100 ? 'crit' : 'ok'}
           />
           <KpiTile

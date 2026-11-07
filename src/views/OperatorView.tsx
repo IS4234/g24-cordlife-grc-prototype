@@ -7,7 +7,7 @@ import { TankCard } from '../components/TankCard'
 import { TankDetail } from '../components/TankDetail'
 import { activeSensorDeviations, isActive } from '../domain/deviations'
 import { DEFAULT_PERSON } from '../domain/people'
-import { BREACH_LIMIT_C, isMonitored, tempStatus } from '../domain/rules'
+import { BREACH_LIMIT_C, isMonitored, storageCheck } from '../domain/rules'
 import { formatDateTime } from '../lib/format'
 import { restoreCooling, restoreProbeFeed, returnTankToService, verifyProbeMapping } from '../store/actions'
 import { useAppState } from '../store/store'
@@ -20,8 +20,10 @@ export function OperatorView() {
   const openTank = tanks.find((t) => t.id === openTankId)
 
   const monitored = tanks.filter(isMonitored)
-  const inLimit = monitored.filter((t) => tempStatus(t, settings) !== 'breach').length
-  const breaches = monitored.length - inLimit
+  const checks = monitored.map((t) => storageCheck(t, settings, state.simTime))
+  const inLimit = checks.filter((c) => c === 'in_limit').length
+  const breaches = checks.filter((c) => c === 'breach').length
+  const unknown = checks.filter((c) => c === 'unknown').length
   const serviceDue = tanks.filter((t) => t.serviceStatus === 'due_service').length
   const active = deviations.filter(isActive)
   const alerts = active
@@ -31,7 +33,12 @@ export function OperatorView() {
   return (
     <div className="operator">
       <KpiRow>
-        <KpiTile label="Tanks within limit" value={`${inLimit} / ${monitored.length}`} tone={breaches ? 'crit' : 'ok'} />
+        <KpiTile
+          label="Tanks within limit"
+          value={`${inLimit} / ${monitored.length}`}
+          sub={unknown ? `${unknown} unverified or no data` : undefined}
+          tone={breaches || unknown ? 'crit' : 'ok'}
+        />
         <KpiTile label="Tanks in breach" value={String(breaches)} tone={breaches ? 'crit' : 'ok'} />
         <KpiTile label="Open deviations" value={String(active.length)} tone={active.length ? 'warn' : 'ok'} />
         <KpiTile label="Tanks due for service" value={String(serviceDue)} tone={serviceDue ? 'warn' : 'ok'} />

@@ -1,7 +1,7 @@
 import { isActive } from './deviations'
 import { LEVELS } from './escalation'
 import { SYSTEM_ACTOR } from './people'
-import { isMonitored, isOverdue, tempStatus } from './rules'
+import { isMonitored, isOverdue, storageCheck } from './rules'
 import type { AppState, EscalationLevel } from './types'
 
 // Key risk indicators for the Board (Reg 5(2): KPIs with periodic monitoring and evaluation).
@@ -18,6 +18,8 @@ export interface ChangeRequestStats {
 
 export interface Kris {
   monitoredTanks: number
+  /** Monitored tanks whose reading can't be trusted (unverified probe or no recent data) */
+  tanksUnknown: number
   tanksInLimit: number
   tanksInLimitPct: number
   tanksInUse: number
@@ -41,7 +43,9 @@ export function computeKris(s: AppState): Kris {
   const now = new Date(s.simTime).getTime()
 
   const monitored = s.tanks.filter(isMonitored)
-  const inLimit = monitored.filter((t) => tempStatus(t, s.settings) !== 'breach').length
+  const checks = monitored.map((t) => storageCheck(t, s.settings, s.simTime))
+  const inLimit = checks.filter((c) => c === 'in_limit').length
+  const unknown = checks.filter((c) => c === 'unknown').length
   const inUse = s.tanks.filter((t) => t.serviceStatus !== 'not_in_use')
   const dueSoon = inUse.filter(
     (t) =>
@@ -85,6 +89,7 @@ export function computeKris(s: AppState): Kris {
 
   return {
     monitoredTanks: monitored.length,
+    tanksUnknown: unknown,
     tanksInLimit: inLimit,
     tanksInLimitPct: pct(inLimit, monitored.length),
     tanksInUse: inUse.length,

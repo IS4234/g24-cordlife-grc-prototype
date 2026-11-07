@@ -39,7 +39,7 @@ export function computePosture(s: AppState): Posture {
       label: 'Storage conditions',
       weight: 0.3,
       score: k.tanksInLimitPct,
-      basis: `${k.tanksInLimit} of ${k.monitoredTanks} monitored tanks within limit`,
+      basis: `${k.tanksInLimit} of ${k.monitoredTanks} monitored tanks confirmed within limit${k.tanksUnknown ? ` · ${k.tanksUnknown} unverified or no data` : ''}`,
     },
     {
       id: 'timeliness',

@@ -85,6 +85,8 @@ export function tankBadge(tank: Tank, settings: RiskSettings, now: string): (typ
   if (isInService(tank) && readingAgeMin(tank, now) >= PROBE_STALE_MIN) {
     return { label: 'No data', tone: 'crit' }
   }
+  // The reading might belong to another tank, so don't present it as this tank's status
+  if (isInService(tank) && !tank.probeVerified) return { label: 'Unverified', tone: 'warn' }
   return TEMP_STATUS[tempStatus(tank, settings)]
 }
 

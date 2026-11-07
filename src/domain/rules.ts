@@ -47,6 +47,20 @@ export function loadBlockReason(tank: Tank, settings: RiskSettings, now: string)
   return undefined
 }
 
+/** A reading counts only if the probe is mapped to the right tank and has reported recently */
+export function readingTrusted(tank: Tank, now: string): boolean {
+  return tank.probeVerified && readingAgeMin(tank, now) < PROBE_STALE_MIN
+}
+
+/**
+ * Storage state of a monitored tank for compliance reporting. A tank whose reading can't be
+ * trusted is "unknown", never "in limit": an old safe reading is not proof of safe storage now.
+ */
+export function storageCheck(tank: Tank, settings: RiskSettings, now: string): 'in_limit' | 'breach' | 'unknown' {
+  if (!readingTrusted(tank, now)) return 'unknown'
+  return tempStatus(tank, settings) === 'breach' ? 'breach' : 'in_limit'
+}
+
 export function tempStatus(tank: Tank, settings: RiskSettings): TempStatus {
   // An empty tank in service is ready for units, not a monitoring gap
   if (isInService(tank) && tank.cbuCount === 0) return 'empty'
