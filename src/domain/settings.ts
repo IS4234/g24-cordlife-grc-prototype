@@ -1,7 +1,10 @@
+import { formatDateTime } from '../lib/format'
 import { SEVERITY } from '../lib/labels'
 import { withAudit } from './audit'
-import { getPerson } from './people'
-import { BREACH_LIMIT_C } from './rules'
+import { isActive, updateDeviation } from './deviations'
+import { notifyMohIfDue } from './escalation'
+import { getPerson, SYSTEM_ACTOR } from './people'
+import { BREACH_LIMIT_C, dueAtFor } from './rules'
 import type { AppState, RiskSettings, Severity } from './types'
 
 export const SETTINGS_ENTITY = 'RISK-APPETITE'
@@ -43,7 +46,7 @@ export function updateSettings(s: AppState, next: RiskSettings, actorId: string,
   if (getPerson(actorId)?.role !== 'board' || settingsErrors(next).length || reason.trim().length < 10) return s
   const changes = describeChanges(s.settings, next)
   if (changes.length === 0) return s
-  return withAudit(
+  const saved = withAudit(
     { ...s, settings: next },
     {
       actorId,
@@ -52,4 +55,34 @@ export function updateSettings(s: AppState, next: RiskSettings, actorId: string,
       detail: `Risk appetite changed: ${changes.join('; ')}. Reason: ${reason.trim()}`,
     },
   )
+  return applyToOpenDeviations(saved, s.settings)
+}
+
+/**
+ * Settings changes reach open deviations straight away, but only ever in the stricter direction:
+ * - a shorter deadline brings an open deviation's deadline forward to now + the new deadline,
+ *   while a longer one leaves it alone, so deadlines can't be stretched to avoid an escalation;
+ * - a wider MOH reporting rule notifies open Board cases that now qualify.
+ */
+function applyToOpenDeviations(s: AppState, prev: RiskSettings): AppState {
+  let next = s
+  for (const d of s.deviations.filter(isActive)) {
+    const sev = d.severity
+    if (s.settings.deadlineMinutes[sev] < prev.deadlineMinutes[sev]) {
+      const newDue = dueAtFor(sev, s.simTime, s.settings)
+      if (newDue < d.dueAt) {
+        next = updateDeviation(next, d.id, (cur) => ({ ...cur, dueAt: newDue }))
+        next = withAudit(next, {
+          actorId: SYSTEM_ACTOR,
+          action: 'deviation.deadline_changed',
+          entityId: d.id,
+          detail: `Deadline brought forward to ${formatDateTime(newDue)} after the Board shortened the ${sev} deadline from ${prev.deadlineMinutes[sev]} to ${s.settings.deadlineMinutes[sev]} minutes.`,
+        })
+      }
+    }
+    if (s.settings.mohNotifySeverity !== prev.mohNotifySeverity) {
+      next = notifyMohIfDue(next, d.id, 'Board widened MOH reporting to include this case')
+    }
+  }
+  return next
 }

@@ -31,8 +31,10 @@ export function RiskSettingsPanel({ settings, actorId, lastChange }: RiskSetting
       <div className="risk__head">
         <h2>Risk appetite</h2>
         <p>
-          Set by the Board and applied automatically by the system. Changes take effect immediately and are recorded in
-          the audit log with a reason.
+          Set by the Board and applied automatically by the system. Every change is recorded in the audit log with a
+          reason. Open deviations only ever move in the stricter direction: a shorter deadline brings their deadlines
+          forward from now, a longer one applies to new deviations only, and widening MOH reporting notifies open Board
+          cases straight away.
         </p>
       </div>
 
