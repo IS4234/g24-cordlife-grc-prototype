@@ -49,7 +49,7 @@ export function BoardView() {
           <KpiTile
             label="Deviations resolved"
             value={`${k.resolvedPct}%`}
-            sub={`${k.closedDeviations} closed`}
+            sub={`${k.closedDeviations} investigated and closed${k.dismissedDeviations ? ` · ${k.dismissedDeviations} dismissed` : ''}`}
             reg="Reg 5(2)(b)"
             tone={k.resolvedPct < 50 ? 'warn' : 'ok'}
           />

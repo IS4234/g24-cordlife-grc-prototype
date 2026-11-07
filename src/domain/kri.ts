@@ -27,7 +27,11 @@ export interface Kris {
   serviceDueSoonPct: number
   openDeviations: number
   openCritical: number
+  /** Closed after a root cause, CAPA and approval */
   closedDeviations: number
+  /** Closed by an approved dismissal, with no investigation */
+  dismissedDeviations: number
+  /** Share of deviations closed after investigation; dismissals don't count as resolved */
   resolvedPct: number
   overdueNow: number
   missedDeadlines: number
@@ -54,7 +58,8 @@ export function computeKris(s: AppState): Kris {
   ).length
 
   const active = s.deviations.filter(isActive)
-  const closed = s.deviations.length - active.length
+  const dismissed = s.deviations.filter((d) => !isActive(d) && d.dismissed).length
+  const closed = s.deviations.length - active.length - dismissed
 
   const openByLevel = Object.fromEntries(LEVELS.map((l) => [l, 0])) as Record<EscalationLevel, number>
   active.forEach((d) => openByLevel[d.escalationLevel]++)
@@ -98,6 +103,7 @@ export function computeKris(s: AppState): Kris {
     openDeviations: active.length,
     openCritical: active.filter((d) => d.severity === 'critical').length,
     closedDeviations: closed,
+    dismissedDeviations: dismissed,
     resolvedPct: pct(closed, s.deviations.length),
     overdueNow: active.filter((d) => d.escalationLevel !== 'moh' && isOverdue(d.dueAt, s.simTime)).length,
     missedDeadlines: s.audit.filter((a) => a.action === 'deviation.escalated' && a.actorId === SYSTEM_ACTOR).length,
