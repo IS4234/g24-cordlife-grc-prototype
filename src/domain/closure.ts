@@ -3,6 +3,7 @@ import { withAudit } from './audit'
 import { isActive, updateDeviation } from './deviations'
 import { getPerson, personName } from './people'
 import { dueAtFor } from './rules'
+import { ongoingCondition } from './tankChecks'
 import type { AppState, Deviation, Person, Severity } from './types'
 
 // Segregation of duties for closing, downgrading and dismissing deviations.
@@ -82,7 +83,7 @@ export function submissionErrors(d: Deviation, input: ClosureSubmission): string
 export function submitForClosure(s: AppState, id: string, actorId: string, input: ClosureSubmission): AppState {
   const d = s.deviations.find((x) => x.id === id)
   if (!d || !isActive(d) || d.pendingChange || !canGovern(getPerson(actorId))) return s
-  if (submissionErrors(d, input).length) return s
+  if (submissionErrors(d, input).length || ongoingCondition(s, d)) return s
 
   const next = updateDeviation(s, id, (cur) => ({
     ...cur,
@@ -103,7 +104,7 @@ export function submitForClosure(s: AppState, id: string, actorId: string, input
 
 export function approveClosure(s: AppState, id: string, personId: string, note?: string): AppState {
   const d = s.deviations.find((x) => x.id === id)
-  if (!d || approvalBlocker(d, personId)) return s
+  if (!d || approvalBlocker(d, personId) || ongoingCondition(s, d)) return s
 
   const approvals = [...d.approvals, { personId, at: s.simTime, note: note?.trim() || undefined }]
   const updated = { ...d, approvals }
@@ -183,6 +184,8 @@ export function approveChange(s: AppState, id: string, personId: string): AppSta
   const d = s.deviations.find((x) => x.id === id)
   if (!d?.pendingChange || changeBlocker(d, personId)) return s
   const req = d.pendingChange
+  // A live condition can't be dismissed as "not a concern"
+  if (req.kind === 'dismiss' && ongoingCondition(s, d)) return s
   const who = `Requested by ${personName(req.requestedBy)}, approved by ${personName(personId)}`
 
   if (req.kind === 'dismiss') {

@@ -8,6 +8,7 @@ import {
 } from '../domain/closure'
 import { getPerson, personName } from '../domain/people'
 import { atLeast } from '../domain/rules'
+import { ongoingCondition } from '../domain/tankChecks'
 import type { Deviation, Severity } from '../domain/types'
 import { formatDateTime } from '../lib/format'
 import { SEVERITY } from '../lib/labels'
@@ -18,6 +19,7 @@ import {
   requestDeviationChange,
   submitClosure,
 } from '../store/actions'
+import { useAppState } from '../store/store'
 import './ClosurePanels.css'
 
 interface PanelProps {
@@ -55,6 +57,7 @@ export function SubmitClosurePanel({ deviation: d, actorId }: PanelProps) {
   const [evidence, setEvidence] = useState('')
   const input = { rootCause, capa, newEvidence: evidence.trim() ? [evidence.trim()] : [] }
   const errors = submissionErrors(d, input)
+  const ongoing = ongoingCondition(useAppState(), d)
 
   return (
     <section className="panel">
@@ -95,8 +98,9 @@ export function SubmitClosurePanel({ deviation: d, actorId }: PanelProps) {
             ))}
           </ul>
         )}
+        {ongoing && <Blocked message={`Can't close yet. ${ongoing}`} />}
         <div>
-          <button type="submit" className="btn btn--small" disabled={errors.length > 0}>
+          <button type="submit" className="btn btn--small" disabled={errors.length > 0 || !!ongoing}>
             Submit for approval
           </button>
         </div>
@@ -108,7 +112,8 @@ export function SubmitClosurePanel({ deviation: d, actorId }: PanelProps) {
 export function ApprovalPanel({ deviation: d, actorId }: PanelProps) {
   const [note, setNote] = useState('')
   const [rejecting, setRejecting] = useState(false)
-  const blocker = approvalBlocker(d, actorId)
+  const state = useAppState()
+  const blocker = approvalBlocker(d, actorId) ?? ongoingCondition(state, d)
 
   return (
     <section className="panel panel--highlight">
@@ -241,7 +246,8 @@ export function ChangeRequestPanel({ deviation: d, actorId }: PanelProps) {
 
 export function PendingChangePanel({ deviation: d, actorId }: PanelProps) {
   const req = d.pendingChange!
-  const blocker = changeBlocker(d, actorId)
+  const ongoing = ongoingCondition(useAppState(), d)
+  const blocker = changeBlocker(d, actorId) ?? (req.kind === 'dismiss' ? ongoing : null)
   const what =
     req.kind === 'dismiss' ? 'dismiss this deviation' : `lower severity to ${SEVERITY[req.to!].label}`
 

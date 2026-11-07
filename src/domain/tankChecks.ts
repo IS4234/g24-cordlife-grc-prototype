@@ -1,7 +1,14 @@
 import { formatDateTime, formatSpan } from '../lib/format'
 import { SERVICE_LABEL, SEVERITY, TRIGGER_LABEL } from '../lib/labels'
 import { withAudit } from './audit'
-import { activeSensorDeviation, activeSensorDeviations, createDeviation, type NewDeviation, updateDeviation } from './deviations'
+import {
+  activeSensorDeviation,
+  activeSensorDeviations,
+  createDeviation,
+  isActive,
+  type NewDeviation,
+  updateDeviation,
+} from './deviations'
 import { notifyMohIfDue } from './escalation'
 import { SYSTEM_ACTOR } from './people'
 import {
@@ -16,7 +23,7 @@ import {
   readingAgeMin,
   severityForBreach,
 } from './rules'
-import type { AppState, SensorTrigger, Tank } from './types'
+import type { AppState, Deviation, SensorTrigger, Tank } from './types'
 
 type Finding = Omit<NewDeviation, 'source' | 'raisedBy' | 'tankId' | 'trigger'>
 type Check = (t: Tank, s: AppState) => Finding | undefined
@@ -186,11 +193,56 @@ function checkStorage(s: AppState, tank: Tank): AppState {
   return STAGE_TRIGGERS.indexOf(stage.trigger) > reached ? upgrade(s, open.id, stage.trigger, stage.finding) : s
 }
 
+/**
+ * Why a system-raised deviation can't be closed or dismissed yet: the condition that raised it is
+ * still present. Writing a CAPA is not the same as the tank having recovered, so closure waits
+ * until the system can see that it has. Returns null when the condition has cleared.
+ */
+export function ongoingCondition(s: AppState, d: Deviation): string | null {
+  if (d.source !== 'sensor' || !d.tankId) return null
+  const t = s.tanks.find((x) => x.id === d.tankId)
+  if (!t) return null
+  const trigger = d.trigger ?? 'breach'
+
+  if (STAGE_TRIGGERS.includes(trigger)) {
+    if (isInService(t) && readingAgeMin(t, s.simTime) >= PROBE_STALE_MIN) {
+      return `${t.id}'s probe is not reporting, so recovery can't be confirmed.`
+    }
+    if (isMonitored(t) && t.tempC > BREACH_LIMIT_C) return `${t.id} is still above ${BREACH_LIMIT_C} °C (${t.tempC} °C).`
+    if (isMonitored(t) && t.tempC > s.settings.warningC) {
+      return `${t.id} is still warmer than the ${s.settings.warningC} °C warning level (${t.tempC} °C).`
+    }
+    if (isInService(t) && t.ln2LevelPct < LN2_LOW_PCT) {
+      return `${t.id} LN2 is still below the ${LN2_LOW_PCT}% refill level (${Math.round(t.ln2LevelPct)}%).`
+    }
+    return null
+  }
+  const check = CHECKS[trigger]
+  return check && check(t, s) ? `The ${TRIGGER_LABEL[trigger]} condition on ${t.id} is still present.` : null
+}
+
+/** Ends a breach period on an already-closed record when the tank recovers, so its history stays accurate */
+function endClosedExcursions(s: AppState, tank: Tank, above: boolean): AppState {
+  if (above) return s
+  let next = s
+  for (const d of s.deviations) {
+    const list = d.excursions ?? []
+    const last = list[list.length - 1]
+    if (d.tankId !== tank.id || isActive(d) || !last || last.endedAt) continue
+    next = updateDeviation(next, d.id, (cur) => ({
+      ...cur,
+      excursions: list.map((e, i) => (i === list.length - 1 ? { ...e, endedAt: s.simTime } : e)),
+    }))
+  }
+  return next
+}
+
 /** Records when an open storage incident's tank goes above the breach limit, its peak, and when it comes back */
-function trackExcursion(s: AppState, tank: Tank): AppState {
+function trackExcursion(state: AppState, tank: Tank): AppState {
+  const above = isMonitored(tank) && tank.tempC > BREACH_LIMIT_C
+  const s = endClosedExcursions(state, tank, above)
   const open = activeSensorDeviations(s, tank.id).find((d) => STAGE_TRIGGERS.includes(d.trigger ?? 'breach'))
   if (!open) return s
-  const above = isMonitored(tank) && tank.tempC > BREACH_LIMIT_C
   const list = open.excursions ?? []
   const last = list[list.length - 1]
   const running = last !== undefined && !last.endedAt
