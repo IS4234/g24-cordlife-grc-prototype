@@ -100,8 +100,8 @@ export function RiskSettingsPanel({ settings, actorId, lastChange }: RiskSetting
         <fieldset className="risk__group">
           <legend>Regulator notification</legend>
           <p className="risk__note">
-            Critical deviations are always pushed to MOH when they reach the Board. This is the regulatory minimum and
-            cannot be lowered. MOH can also see every deviation in its own read-only register.
+            Critical deviations are always pushed to MOH immediately when created or upgraded to critical. This is the
+            regulatory minimum and cannot be lowered. MOH can also see every deviation in its own read-only register.
           </p>
           <label className="field">
             Also push to MOH when they reach the Board

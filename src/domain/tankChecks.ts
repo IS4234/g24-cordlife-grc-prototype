@@ -6,10 +6,10 @@ import {
   activeSensorDeviations,
   createDeviation,
   isActive,
+  notifyMohIfDue,
   type NewDeviation,
   updateDeviation,
 } from './deviations'
-import { notifyMohIfDue } from './escalation'
 import { SYSTEM_ACTOR } from './people'
 import {
   atLeast,
