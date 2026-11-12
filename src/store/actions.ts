@@ -10,7 +10,7 @@ import {
 } from '../domain/closure'
 import { createDeviation, type NewDeviation } from '../domain/deviations'
 import { acknowledgeAlert, assignOwner, escalateManually } from '../domain/escalation'
-import { addMinutes, CALIBRATION_INTERVAL_DAYS, loadBlockReason } from '../domain/rules'
+import { addMinutes, CALIBRATION_INTERVAL_DAYS, isInService, loadBlockReason } from '../domain/rules'
 import { advanceMinutes } from '../domain/simulation'
 import { detectTankIssues } from '../domain/tankChecks'
 import { updateSettings } from '../domain/settings'
@@ -132,6 +132,28 @@ export function returnTankToService(tankId: string, personId: string) {
       },
     )
     return detectTankIssues(next)
+  })
+}
+
+/** Records scheduled maintenance completed outside the monitoring workflow. */
+export function recordService(tankId: string, personId: string) {
+  setState((s) => {
+    const tank = s.tanks.find((t) => t.id === tankId)
+    if (!tank || !isInService(tank)) return s
+    return withAudit(
+      updateTank(s, tankId, (t) => ({
+        ...t,
+        serviceStatus: 'in_service',
+        lastServicedAt: s.simTime,
+        nextServiceDue: addMinutes(s.simTime, SERVICE_INTERVAL_DAYS * 1440),
+      })),
+      {
+        actorId: personId,
+        action: 'tank.service_completed',
+        entityId: tankId,
+        detail: `${tankId} service completion recorded. Next service due in ${SERVICE_INTERVAL_DAYS} days. Any linked deviation stays open for investigation.`,
+      },
+    )
   })
 }
 

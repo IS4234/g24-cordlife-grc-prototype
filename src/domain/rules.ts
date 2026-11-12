@@ -107,6 +107,11 @@ export function isOverdue(dueAt: string, now: string): boolean {
   return new Date(now).getTime() >= new Date(dueAt).getTime()
 }
 
+/** Includes tanks flagged for service before their deadline and in-use tanks overdue by date. */
+export function isServiceDue(tank: Tank, now: string): boolean {
+  return isInService(tank) && (tank.serviceStatus === 'due_service' || isOverdue(tank.nextServiceDue, now))
+}
+
 export function addMinutes(iso: string, minutes: number): string {
   return new Date(new Date(iso).getTime() + minutes * 60_000).toISOString()
 }

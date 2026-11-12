@@ -13,7 +13,7 @@ import {
 import type { AppState, Tank } from '../domain/types'
 import { formatAgo, formatDate, formatDateTime } from '../lib/format'
 import { DEVIATION_STATUS, SERVICE_LABEL, tankBadge } from '../lib/labels'
-import { loadUnits, recordCalibration, verifyProbeMapping } from '../store/actions'
+import { loadUnits, recordCalibration, recordService, verifyProbeMapping } from '../store/actions'
 import { Ln2Bar } from './TankCard'
 import { Pill } from './Pill'
 import { SeverityPill } from './Severity'
@@ -106,6 +106,13 @@ export function TankDetail({ tank, state, actorId }: TankDetailProps) {
             late={serviceLate}
           />
         </dl>
+        {inUse && (
+          <div className="tank-detail__buttons">
+            <button type="button" className="btn btn--ghost btn--small" onClick={() => recordService(tank.id, actorId)}>
+              Record service completed
+            </button>
+          </div>
+        )}
       </section>
 
       <section className="detail__section">

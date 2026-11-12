@@ -313,6 +313,27 @@ function trackExcursion(state: AppState, tank: Tank): AppState {
 export function detectTankIssues(s: AppState): AppState {
   let next = s
   for (const tank of s.tanks) {
+    // A renewed condition makes the submitted investigation and its approvals out of date.
+    // Check before upgrading the incident so same-stage recurrences invalidate closure too.
+    for (const d of next.deviations) {
+      if (d.tankId !== tank.id || d.status !== 'pending_closure') continue
+      const condition = ongoingCondition(next, d)
+      if (!condition) continue
+      next = withAudit(
+        updateDeviation(next, d.id, (cur) => ({
+          ...cur,
+          status: 'investigating',
+          approvals: [],
+          submittedBy: undefined,
+        })),
+        {
+          actorId: SYSTEM_ACTOR,
+          action: 'deviation.closure_invalidated',
+          entityId: d.id,
+          detail: `Closure submission invalidated: ${condition} Existing approvals cleared; review and resubmit the investigation.`,
+        },
+      )
+    }
     next = trackExcursion(checkStorage(next, tank), tank)
     for (const [trigger, check] of Object.entries(CHECKS) as [SensorTrigger, Check][]) {
       const finding = check(tank, next)
