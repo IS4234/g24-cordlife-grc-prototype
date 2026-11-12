@@ -124,7 +124,7 @@ export interface AuditEntry {
 export interface RiskSettings {
   warningC: number
   deadlineMinutes: Record<Severity, number>
-  /** Deviations at or above this severity are pushed to MOH as soon as they escalate to the Board */
+  /** Additional severities pushed to MOH at the Board; critical deviations notify MOH immediately */
   mohNotifySeverity: Severity
 }
 

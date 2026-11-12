@@ -29,8 +29,6 @@ const ALERT_FILTERS: { id: AlertFilter; label: string; empty: string }[] = [
   { id: 'all', label: 'All', empty: 'No alerts have been pushed to MOH.' },
 ]
 
-const REPORTED: Record<Severity, string> = { critical: 'a critical', major: 'a major or critical', minor: 'any' }
-
 // MOH chooses what it looks at; the licensee cannot hide anything from this register
 const SEVERITY_FILTERS: { min: Severity; label: string }[] = [
   { min: 'critical', label: 'Critical' },
@@ -151,8 +149,11 @@ export function MohView() {
           <div className="moh__title">
             <h2>Alerts</h2>
             <span>
-              Pushed automatically when {REPORTED[state.settings.mohNotifySeverity]} deviation reaches the Board, or
-              escalated to MOH directly
+              Critical deviations are pushed immediately when created or upgraded to critical. Any deviation escalated
+              directly to MOH also appears here.
+              {state.settings.mohNotifySeverity !== 'critical' && (
+                <> Also pushed at the Board: {state.settings.mohNotifySeverity === 'major' ? 'major deviations' : 'all deviations'}.</>
+              )}
             </span>
           </div>
           <div className="segmented" role="tablist" aria-label="Filter alerts">

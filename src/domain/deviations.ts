@@ -1,5 +1,7 @@
+import { LEVEL_LABEL } from '../lib/labels'
 import { withAudit } from './audit'
-import { dueAtFor } from './rules'
+import { SYSTEM_ACTOR } from './people'
+import { atLeast, dueAtFor } from './rules'
 import type { AppState, Deviation, SensorTrigger } from './types'
 
 export type NewDeviation = Pick<
@@ -20,7 +22,7 @@ export function createDeviation(s: AppState, input: NewDeviation): AppState {
     approvals: [],
   }
   const how = input.source === 'sensor' ? 'Automatically raised' : 'Raised'
-  return withAudit(
+  const next = withAudit(
     { ...s, deviations: [...s.deviations, deviation], nextDeviationSeq: s.nextDeviationSeq + 1 },
     {
       actorId: input.raisedBy,
@@ -29,6 +31,7 @@ export function createDeviation(s: AppState, input: NewDeviation): AppState {
       detail: `${how} ${input.severity} deviation: ${input.title}`,
     },
   )
+  return notifyMohIfDue(next, id, `${input.severity} deviation created`)
 }
 
 export function updateDeviation(s: AppState, id: string, update: (d: Deviation) => Deviation): AppState {
@@ -37,6 +40,24 @@ export function updateDeviation(s: AppState, id: string, update: (d: Deviation) 
 
 export function isActive(d: Deviation): boolean {
   return d.status !== 'closed'
+}
+
+/** Critical deviations notify MOH immediately; other severities follow the Board's reporting rule. */
+export function notifyMohIfDue(s: AppState, id: string, why?: string): AppState {
+  const d = s.deviations.find((x) => x.id === id)
+  if (!d || d.mohNotifiedAt || !isActive(d)) return s
+  const reportable =
+    d.severity === 'critical' ||
+    d.escalationLevel === 'moh' ||
+    (d.escalationLevel === 'board' && atLeast(d.severity, s.settings.mohNotifySeverity))
+  if (!reportable) return s
+  const next = updateDeviation(s, id, (cur) => ({ ...cur, mohNotifiedAt: s.simTime }))
+  return withAudit(next, {
+    actorId: SYSTEM_ACTOR,
+    action: 'deviation.moh_notified',
+    entityId: id,
+    detail: `Pushed to MOH: ${why ?? `deviation became ${d.severity}`} while at ${LEVEL_LABEL[d.escalationLevel]}.`,
+  })
 }
 
 /** Open system-raised deviations for a tank, optionally for one condition */

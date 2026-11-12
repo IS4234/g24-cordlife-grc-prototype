@@ -1,8 +1,8 @@
 import { LEVEL_LABEL } from '../lib/labels'
 import { withAudit } from './audit'
-import { isActive, updateDeviation } from './deviations'
+import { isActive, notifyMohIfDue, updateDeviation } from './deviations'
 import { getPerson, personName, SYSTEM_ACTOR } from './people'
-import { atLeast, dueAtFor, isOverdue } from './rules'
+import { dueAtFor, isOverdue } from './rules'
 import type { AppState, Deviation, EscalationLevel } from './types'
 
 export const LEVELS: EscalationLevel[] = ['operator', 'cgo', 'board', 'moh']
@@ -12,17 +12,11 @@ export function levelsAbove(level: EscalationLevel): EscalationLevel[] {
 }
 
 function escalate(s: AppState, d: Deviation, to: EscalationLevel, actorId: string, reason: string): AppState {
-  // Severe deviations reach MOH as soon as the Board sees them, without waiting for the Board to act.
-  // Critical always qualifies: the Board can widen this to Major or Minor but never narrow it.
-  const notifyMoh =
-    !d.mohNotifiedAt && (to === 'moh' || (to === 'board' && atLeast(d.severity, s.settings.mohNotifySeverity)))
-
   let next = updateDeviation(s, d.id, (cur) => ({
     ...cur,
     escalationLevel: to,
     status: cur.status === 'pending_closure' ? cur.status : 'escalated',
     dueAt: dueAtFor(cur.severity, s.simTime, s.settings),
-    mohNotifiedAt: notifyMoh ? s.simTime : cur.mohNotifiedAt,
   }))
   next = withAudit(next, {
     actorId,
@@ -30,33 +24,7 @@ function escalate(s: AppState, d: Deviation, to: EscalationLevel, actorId: strin
     entityId: d.id,
     detail: `${reason}. Escalated from ${LEVEL_LABEL[d.escalationLevel]} to ${LEVEL_LABEL[to]}.`,
   })
-  if (notifyMoh) {
-    next = withAudit(next, {
-      actorId: SYSTEM_ACTOR,
-      action: 'deviation.moh_notified',
-      entityId: d.id,
-      detail: `Pushed to MOH: ${d.severity} deviation reached ${LEVEL_LABEL[to]}.`,
-    })
-  }
-  return next
-}
-
-/**
- * When a deviation already at the Board or MOH becomes severe enough to report (for example a
- * storage incident upgraded to critical), MOH is told straight away rather than at the next escalation.
- */
-export function notifyMohIfDue(s: AppState, id: string, why?: string): AppState {
-  const d = s.deviations.find((x) => x.id === id)
-  if (!d || d.mohNotifiedAt || !isActive(d)) return s
-  if (d.escalationLevel !== 'board' && d.escalationLevel !== 'moh') return s
-  if (!atLeast(d.severity, s.settings.mohNotifySeverity)) return s
-  const next = updateDeviation(s, id, (cur) => ({ ...cur, mohNotifiedAt: s.simTime }))
-  return withAudit(next, {
-    actorId: SYSTEM_ACTOR,
-    action: 'deviation.moh_notified',
-    entityId: id,
-    detail: `Pushed to MOH: ${why ?? `deviation became ${d.severity}`} while at ${LEVEL_LABEL[d.escalationLevel]}.`,
-  })
+  return notifyMohIfDue(next, d.id, `${d.severity} deviation reached ${LEVEL_LABEL[to]}`)
 }
 
 /** Runs every simulated minute. A missed deadline moves the deviation up one level. */

@@ -37,7 +37,11 @@ export function SeverityLegend({ settings }: { settings: RiskSettings }) {
           <p className="sev-legend__meaning">{SEVERITY[s].meaning}</p>
           <p className="sev-legend__rule">
             Escalates one level every <strong>{formatSpan(settings.deadlineMinutes[s])}</strong> while open
-            {atLeast(s, settings.mohNotifySeverity) && <>; reported to MOH once it reaches the Board</>}
+            {s === 'critical' ? (
+              <>; reported to MOH immediately when created or upgraded to critical</>
+            ) : atLeast(s, settings.mohNotifySeverity) ? (
+              <>; reported to MOH once it reaches the Board</>
+            ) : null}
           </p>
         </div>
       ))}
