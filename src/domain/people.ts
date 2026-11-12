@@ -8,6 +8,7 @@ export const PEOPLE: Person[] = [
   { id: 'p-marcus', name: 'Marcus Lee', title: 'Laboratory Supervisor', role: 'operator', line: 'operations' },
   { id: 'p-rachel', name: 'Dr Rachel Ng', title: 'Clinical Governance Officer', role: 'cgo', line: 'clinical_governance' },
   { id: 'p-daniel', name: 'Daniel Koh', title: 'Quality Assurance Manager', role: 'cgo', line: 'quality_assurance' },
+  { id: 'p-priya', name: 'Priya Shah', title: 'Clinical Quality Assurance Director', role: 'cgo', line: 'quality_assurance' },
   { id: 'p-helen', name: 'Helen Tay', title: 'Chair, Audit and Risk Committee', role: 'board', line: 'board' },
   { id: 'p-moh', name: 'MOH Licensing Inspector', title: 'Ministry of Health', role: 'moh', line: 'regulator' },
 ]
