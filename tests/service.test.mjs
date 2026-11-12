@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { submitForClosure } from '../src/domain/closure.ts'
-import { addMinutes } from '../src/domain/rules.ts'
+import { addMinutes, isServiceDue } from '../src/domain/rules.ts'
 import { ongoingCondition } from '../src/domain/tankChecks.ts'
 import * as actions from '../src/store/actions.ts'
 import { getState, resetDemo } from '../src/store/store.ts'
@@ -79,3 +79,17 @@ for (const tankId of ['T-09', 'T-11', 'missing-tank']) {
     assert.strictEqual(getState(), before)
   })
 }
+
+test('service due includes the next deadline without counting inactive tanks', () => {
+  resetDemo()
+  actions.recordService('T-08', 'p-aisyah')
+  const { tanks, simTime } = getState()
+  const tank = tanks.find((t) => t.id === 'T-08')
+  assert.equal(isServiceDue(tank, addMinutes(tank.nextServiceDue, -1)), false)
+  assert.equal(isServiceDue(tank, tank.nextServiceDue), true)
+  assert.equal(isServiceDue(tank, addMinutes(tank.nextServiceDue, 1)), true)
+  assert.equal(isServiceDue({ ...tank, serviceStatus: 'due_service' }, simTime), true)
+  for (const serviceStatus of ['servicing', 'not_in_use']) {
+    assert.equal(isServiceDue({ ...tank, serviceStatus }, tank.nextServiceDue), false)
+  }
+})

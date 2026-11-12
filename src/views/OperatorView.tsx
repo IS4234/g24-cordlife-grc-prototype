@@ -7,7 +7,7 @@ import { TankCard } from '../components/TankCard'
 import { TankDetail } from '../components/TankDetail'
 import { activeSensorDeviations, isActive } from '../domain/deviations'
 import { DEFAULT_PERSON } from '../domain/people'
-import { BREACH_LIMIT_C, isMonitored, storageCheck } from '../domain/rules'
+import { BREACH_LIMIT_C, isMonitored, isServiceDue, storageCheck } from '../domain/rules'
 import { formatDateTime } from '../lib/format'
 import { restoreCooling, restoreProbeFeed, returnTankToService, verifyProbeMapping } from '../store/actions'
 import { useAppState } from '../store/store'
@@ -24,7 +24,7 @@ export function OperatorView() {
   const inLimit = checks.filter((c) => c === 'in_limit').length
   const breaches = checks.filter((c) => c === 'breach').length
   const unknown = checks.filter((c) => c === 'unknown').length
-  const serviceDue = tanks.filter((t) => t.serviceStatus === 'due_service').length
+  const serviceDue = tanks.filter((t) => isServiceDue(t, state.simTime)).length
   const active = deviations.filter(isActive)
   const alerts = active
     .filter((d) => d.severity === 'critical')
