@@ -1,5 +1,5 @@
 import type { MouseEvent } from 'react'
-import { excursionSummary } from '../domain/excursion'
+import { describeExposureTime, excursionSummary } from '../domain/excursion'
 import {
   BREACH_LIMIT_C,
   isInService,
@@ -10,7 +10,7 @@ import {
   tempStatus,
 } from '../domain/rules'
 import type { Deviation, RiskSettings, Tank } from '../domain/types'
-import { formatAgo, formatDateTime, formatSpan } from '../lib/format'
+import { formatAgo, formatDateTime } from '../lib/format'
 import { SERVICE_LABEL, tankBadge, TRIGGER_LABEL } from '../lib/labels'
 import { Pill } from './Pill'
 import { Sparkline } from './Sparkline'
@@ -42,7 +42,7 @@ export function Ln2Bar({ level, wide }: { level: number; wide?: boolean }) {
 function excursionText(d: Deviation, now: string): string {
   const x = excursionSummary(d, now)
   if (!x) return ''
-  return x.ongoing ? ` · above limit for ${formatSpan(x.minutes)}` : ` · ${formatSpan(x.minutes)} above limit`
+  return ` · exposure: ${describeExposureTime(x)}`
 }
 
 // Buttons inside the card act on their own, without also opening the detail drawer

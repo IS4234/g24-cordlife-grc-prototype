@@ -212,8 +212,8 @@ export function MohView() {
                     </div>
                     {excursion && (
                       <div className="alert-card__wide">
-                        <dt>Time above {BREACH_LIMIT_C} °C</dt>
-                        <dd className={excursion.ongoing ? 'alert-card__live' : undefined}>{describeExcursion(excursion)}</dd>
+                        <dt>Exposure above {BREACH_LIMIT_C} °C</dt>
+                        <dd className={excursion.ongoing || excursion.unknownOngoing ? 'alert-card__live' : undefined}>{describeExcursion(excursion)}</dd>
                       </div>
                     )}
                   </dl>

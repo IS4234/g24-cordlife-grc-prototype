@@ -59,7 +59,7 @@ export function DeviationDetail({ deviation: d, state, role, actorId }: Deviatio
           />
         )}
         {excursion && (
-          <Fact label={`Time above ${BREACH_LIMIT_C} °C`} value={describeExcursion(excursion)} late={excursion.ongoing} />
+          <Fact label={`Exposure above ${BREACH_LIMIT_C} °C`} value={describeExcursion(excursion)} late={excursion.ongoing || excursion.unknownOngoing} />
         )}
         {d.closedAt && <Fact label="Closed" value={formatDateTime(d.closedAt)} />}
       </dl>
