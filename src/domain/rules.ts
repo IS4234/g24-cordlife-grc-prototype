@@ -25,9 +25,14 @@ export function isInService(tank: Tank): boolean {
   return tank.serviceStatus === 'in_service' || tank.serviceStatus === 'due_service'
 }
 
+/** Every tank holding units belongs in storage reporting, regardless of service status. */
+export function holdsUnits(tank: Tank): boolean {
+  return tank.cbuCount > 0
+}
+
 /** A tank is monitored for breaches when it holds units and is in service */
 export function isMonitored(tank: Tank): boolean {
-  return tank.cbuCount > 0 && isInService(tank)
+  return holdsUnits(tank) && isInService(tank)
 }
 
 /**
@@ -53,11 +58,11 @@ export function readingTrusted(tank: Tank, now: string): boolean {
 }
 
 /**
- * Storage state of a monitored tank for compliance reporting. A tank whose reading can't be
- * trusted is "unknown", never "in limit": an old safe reading is not proof of safe storage now.
+ * Storage state for compliance reporting. Unmonitored tanks and tanks whose readings can't
+ * be trusted are "unknown": an old safe reading is not proof of safe storage now.
  */
 export function storageCheck(tank: Tank, settings: RiskSettings, now: string): 'in_limit' | 'breach' | 'unknown' {
-  if (!readingTrusted(tank, now)) return 'unknown'
+  if (!isMonitored(tank) || !readingTrusted(tank, now)) return 'unknown'
   return tempStatus(tank, settings) === 'breach' ? 'breach' : 'in_limit'
 }
 
