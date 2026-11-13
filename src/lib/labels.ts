@@ -97,6 +97,9 @@ export function operatorAlertTitle(d: Deviation, state: AppState): string {
   if (d.source !== 'sensor') return d.title
   const tank = state.tanks.find((t) => t.id === d.tankId)
   if (!tank) return d.title
+  if (d.trigger === 'probe_offline' && !tank.probeOffline && isInService(tank) && readingTrusted(tank, state.simTime)) {
+    return `${tank.id} probe reporting restored — incident awaiting closure`
+  }
   if (d.trigger === 'probe_unverified' && tank.probeVerified) {
     return `${tank.id} probe mapping verified — incident awaiting closure`
   }
