@@ -75,7 +75,7 @@ export interface ClosureSubmission {
 export function submissionErrors(d: Deviation, input: ClosureSubmission): string[] {
   const errors: string[] = []
   if (input.rootCause.trim().length < MIN_TEXT) errors.push('Describe the root cause (at least 10 characters).')
-  if (input.capa.trim().length < MIN_TEXT) errors.push('Describe the corrective and preventive action.')
+  if (input.capa.trim().length < MIN_TEXT) errors.push('Describe the corrective and preventive action (at least 10 characters).')
   if (d.evidence.length + input.newEvidence.length === 0) errors.push('Attach at least one piece of evidence.')
   return errors
 }
