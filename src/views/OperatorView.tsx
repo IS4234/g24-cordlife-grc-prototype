@@ -9,6 +9,7 @@ import { activeSensorDeviations, isActive } from '../domain/deviations'
 import { DEFAULT_PERSON } from '../domain/people'
 import { BREACH_LIMIT_C, holdsUnits, isServiceDue, storageCheck } from '../domain/rules'
 import { formatDateTime } from '../lib/format'
+import { operatorAlertTitle } from '../lib/labels'
 import { restoreCooling, restoreProbeFeed, returnTankToService, verifyProbeMapping } from '../store/actions'
 import { useAppState } from '../store/store'
 import './OperatorView.css'
@@ -50,7 +51,7 @@ export function OperatorView() {
             <div key={d.id} className="alert" role="alert">
               <SeverityPill severity={d.severity} />
               <span className="alert__text">
-                <span className="mono">{d.id}</span> {d.title}
+                <span className="mono">{d.id}</span> {operatorAlertTitle(d, state)}
               </span>
               <span className="alert__time mono">Raised {formatDateTime(d.raisedAt)}</span>
             </div>
