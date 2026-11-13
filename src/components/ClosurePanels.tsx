@@ -231,7 +231,7 @@ export function ChangeRequestPanel({ deviation: d, actorId }: PanelProps) {
           </select>
         </label>
         <label className="field">
-          Justification
+          Justification (at least 10 characters)
           <textarea id="change-reason" value={reason} onChange={(e) => setReason(e.target.value)} />
         </label>
         <div>
