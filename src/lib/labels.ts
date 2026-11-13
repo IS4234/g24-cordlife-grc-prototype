@@ -1,5 +1,7 @@
-import { isInService, PROBE_STALE_MIN, readingAgeMin, tempStatus, type TempStatus } from '../domain/rules'
+import { isInService, isMonitored, PROBE_STALE_MIN, readingAgeMin, readingTrusted, tempStatus, type TempStatus } from '../domain/rules'
 import type {
+  AppState,
+  Deviation,
   DeviationCategory,
   DeviationStatus,
   EscalationLevel,
@@ -90,3 +92,15 @@ export function tankBadge(tank: Tank, settings: RiskSettings, now: string): (typ
   return TEMP_STATUS[tempStatus(tank, settings)]
 }
 
+/** Keep open monitoring incidents visible without presenting cleared conditions as ongoing. */
+export function operatorAlertTitle(d: Deviation, state: AppState): string {
+  if (d.source !== 'sensor') return d.title
+  const tank = state.tanks.find((t) => t.id === d.tankId)
+  if (!tank) return d.title
+  if (d.trigger === 'probe_unverified' && tank.probeVerified) {
+    return `${tank.id} probe mapping verified — incident awaiting closure`
+  }
+  return d.trigger === 'unmonitored_units' && isMonitored(tank) && readingTrusted(tank, state.simTime)
+    ? `${tank.id} monitoring restored — incident awaiting closure`
+    : d.title
+}

@@ -7,8 +7,9 @@ import { TankCard } from '../components/TankCard'
 import { TankDetail } from '../components/TankDetail'
 import { activeSensorDeviations, isActive } from '../domain/deviations'
 import { DEFAULT_PERSON } from '../domain/people'
-import { BREACH_LIMIT_C, isMonitored, isServiceDue, storageCheck } from '../domain/rules'
+import { BREACH_LIMIT_C, holdsUnits, isServiceDue, storageCheck } from '../domain/rules'
 import { formatDateTime } from '../lib/format'
+import { operatorAlertTitle } from '../lib/labels'
 import { restoreCooling, restoreProbeFeed, returnTankToService, verifyProbeMapping } from '../store/actions'
 import { useAppState } from '../store/store'
 import './OperatorView.css'
@@ -19,8 +20,8 @@ export function OperatorView() {
   const [openTankId, setOpenTankId] = useState<string | null>(null)
   const openTank = tanks.find((t) => t.id === openTankId)
 
-  const monitored = tanks.filter(isMonitored)
-  const checks = monitored.map((t) => storageCheck(t, settings, state.simTime))
+  const holdingUnits = tanks.filter(holdsUnits)
+  const checks = holdingUnits.map((t) => storageCheck(t, settings, state.simTime))
   const inLimit = checks.filter((c) => c === 'in_limit').length
   const breaches = checks.filter((c) => c === 'breach').length
   const unknown = checks.filter((c) => c === 'unknown').length
@@ -35,8 +36,8 @@ export function OperatorView() {
       <KpiRow>
         <KpiTile
           label="Tanks within limit"
-          value={`${inLimit} / ${monitored.length}`}
-          sub={unknown ? `${unknown} unverified or no data` : undefined}
+          value={`${inLimit} / ${holdingUnits.length}`}
+          sub={`Tanks holding units${unknown ? ` · ${unknown} unknown` : ''}`}
           tone={breaches || unknown ? 'crit' : 'ok'}
         />
         <KpiTile label="Tanks in breach" value={String(breaches)} tone={breaches ? 'crit' : 'ok'} />
@@ -50,7 +51,7 @@ export function OperatorView() {
             <div key={d.id} className="alert" role="alert">
               <SeverityPill severity={d.severity} />
               <span className="alert__text">
-                <span className="mono">{d.id}</span> {d.title}
+                <span className="mono">{d.id}</span> {operatorAlertTitle(d, state)}
               </span>
               <span className="alert__time mono">Raised {formatDateTime(d.raisedAt)}</span>
             </div>

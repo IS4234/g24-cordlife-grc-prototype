@@ -1,7 +1,7 @@
 import { isActive } from './deviations'
 import { LEVELS } from './escalation'
 import { SYSTEM_ACTOR } from './people'
-import { isMonitored, isOverdue, storageCheck } from './rules'
+import { holdsUnits, isOverdue, storageCheck } from './rules'
 import type { AppState, EscalationLevel } from './types'
 
 // Key risk indicators for the Board (Reg 5(2): KPIs with periodic monitoring and evaluation).
@@ -17,8 +17,9 @@ export interface ChangeRequestStats {
 }
 
 export interface Kris {
-  monitoredTanks: number
-  /** Monitored tanks whose reading can't be trusted (unverified probe or no recent data) */
+  /** All tanks holding units, including tanks outside active monitoring. */
+  tanksHoldingUnits: number
+  /** Tanks holding units whose storage status is unknown (unmonitored, unverified or no recent data). */
   tanksUnknown: number
   tanksInLimit: number
   tanksInLimitPct: number
@@ -49,8 +50,8 @@ const pct = (part: number, whole: number) => (whole === 0 ? 100 : Math.round((pa
 export function computeKris(s: AppState): Kris {
   const now = new Date(s.simTime).getTime()
 
-  const monitored = s.tanks.filter(isMonitored)
-  const checks = monitored.map((t) => storageCheck(t, s.settings, s.simTime))
+  const holdingUnits = s.tanks.filter(holdsUnits)
+  const checks = holdingUnits.map((t) => storageCheck(t, s.settings, s.simTime))
   const inLimit = checks.filter((c) => c === 'in_limit').length
   const unknown = checks.filter((c) => c === 'unknown').length
   const inUse = s.tanks.filter((t) => t.serviceStatus !== 'not_in_use')
@@ -96,10 +97,10 @@ export function computeKris(s: AppState): Kris {
   }
 
   return {
-    monitoredTanks: monitored.length,
+    tanksHoldingUnits: holdingUnits.length,
     tanksUnknown: unknown,
     tanksInLimit: inLimit,
-    tanksInLimitPct: pct(inLimit, monitored.length),
+    tanksInLimitPct: pct(inLimit, holdingUnits.length),
     tanksInUse: inUse.length,
     serviceDueSoon: dueSoon,
     serviceDueSoonPct: pct(dueSoon, inUse.length),
