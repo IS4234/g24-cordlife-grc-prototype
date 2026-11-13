@@ -1,4 +1,5 @@
-import { formatDateTime, formatSpan } from '../lib/format'
+import { formatDateTime } from '../lib/format'
+import { describeExcursion, excursionSummary } from './excursion'
 import { SERVICE_LABEL, SEVERITY, TRIGGER_LABEL } from '../lib/labels'
 import { withAudit } from './audit'
 import {
@@ -21,6 +22,7 @@ import {
   LN2_LOW_PCT,
   PROBE_STALE_MIN,
   readingAgeMin,
+  readingTrusted,
   severityForBreach,
 } from './rules'
 import type { AppState, Deviation, SensorTrigger, Tank } from './types'
@@ -57,7 +59,7 @@ const STORAGE_STAGES: { trigger: SensorTrigger; check: Check }[] = [
     check: (t, s) => {
       const recent = t.history.slice(-WARNING_DWELL_MIN)
       const sustained = recent.length === WARNING_DWELL_MIN && recent.every((c) => c > s.settings.warningC)
-      return isMonitored(t) && sustained
+      return isMonitored(t) && readingTrusted(t, s.simTime) && sustained
         ? {
             title: `${t.id} temperature above ${s.settings.warningC} °C warning level`,
             description: `${t.id} has been warmer than the ${s.settings.warningC} °C warning level for ${WARNING_DWELL_MIN} minutes, at ${t.tempC} °C. ${units(t)} stored in this tank. It will breach at ${BREACH_LIMIT_C} °C if it keeps warming.`,
@@ -71,7 +73,7 @@ const STORAGE_STAGES: { trigger: SensorTrigger; check: Check }[] = [
   {
     trigger: 'breach',
     check: (t, s) =>
-      isMonitored(t) && t.tempC > BREACH_LIMIT_C
+      isMonitored(t) && readingTrusted(t, s.simTime) && t.tempC > BREACH_LIMIT_C
         ? {
             title: `${t.id} temperature above ${BREACH_LIMIT_C} °C`,
             description: `Probe reading of ${t.tempC} °C exceeded the ${BREACH_LIMIT_C} °C limit. ${units(t)} stored in this tank.`,
@@ -233,6 +235,9 @@ export function ongoingCondition(s: AppState, d: Deviation): string | null {
     if (isInService(t) && readingAgeMin(t, s.simTime) >= PROBE_STALE_MIN) {
       return `${t.id}'s probe is not reporting, so recovery can't be confirmed.`
     }
+    if (isMonitored(t) && !readingTrusted(t, s.simTime)) {
+      return `${t.id}'s probe mapping is unverified, so recovery can't be confirmed.`
+    }
     if (isMonitored(t) && t.tempC > BREACH_LIMIT_C) return `${t.id} is still above ${BREACH_LIMIT_C} °C (${t.tempC} °C).`
     if (isMonitored(t) && t.tempC > s.settings.warningC) {
       return `${t.id} is still warmer than the ${s.settings.warningC} °C warning level (${t.tempC} °C).`
@@ -262,10 +267,35 @@ function endClosedExcursions(s: AppState, tank: Tank, above: boolean): AppState 
   return next
 }
 
-/** Records when an open storage incident's tank goes above the breach limit, its peak, and when it comes back */
+/** Record uncertainty from the last trusted reading, without treating missing data as recovery. */
+function trackUnknownPeriods(s: AppState, tank: Tank): AppState {
+  const trusted = isMonitored(tank) && readingTrusted(tank, s.simTime)
+  let next = s
+  for (const d of s.deviations) {
+    const list = d.excursions ?? []
+    const last = list.at(-1)
+    if (d.tankId !== tank.id || !last || last.endedAt) continue
+    const gaps = last.unknownPeriods ?? []
+    const gap = gaps.at(-1)
+    const unknown = gap !== undefined && !gap.endedAt
+    if ((trusted && !unknown) || (!trusted && unknown)) continue
+    const unknownPeriods = trusted
+      ? gaps.map((g, i) => i === gaps.length - 1 ? { ...g, endedAt: s.simTime } : g)
+      : [...gaps, { startedAt: tank.lastReadingAt > last.startedAt ? tank.lastReadingAt : last.startedAt }]
+    next = updateDeviation(next, d.id, (cur) => ({
+      ...cur,
+      excursions: list.map((e, i) => i === list.length - 1 ? { ...e, unknownPeriods } : e),
+    }))
+  }
+  return next
+}
+
+/** Records trusted breach readings and recovery, retaining unknown intervals during outages. */
 function trackExcursion(state: AppState, tank: Tank): AppState {
-  const above = isMonitored(tank) && tank.tempC > BREACH_LIMIT_C
-  const s = endClosedExcursions(state, tank, above)
+  const tracked = trackUnknownPeriods(state, tank)
+  if (!isMonitored(tank) || !readingTrusted(tank, state.simTime)) return tracked
+  const above = tank.tempC > BREACH_LIMIT_C
+  const s = endClosedExcursions(tracked, tank, above)
   const open = activeSensorDeviations(s, tank.id).find((d) => STAGE_TRIGGERS.includes(d.trigger ?? 'breach'))
   if (!open) return s
   const list = open.excursions ?? []
@@ -294,7 +324,7 @@ function trackExcursion(state: AppState, tank: Tank): AppState {
     }))
   }
   if (!above && running) {
-    const minutes = Math.round((new Date(s.simTime).getTime() - new Date(last.startedAt).getTime()) / 60_000)
+    const exposure = excursionSummary({ ...open, excursions: [{ ...last, endedAt: s.simTime }] }, s.simTime)!
     const next = updateDeviation(s, open.id, (d) => ({
       ...d,
       excursions: list.map((e, i) => (i === list.length - 1 ? { ...e, endedAt: s.simTime } : e)),
@@ -303,7 +333,7 @@ function trackExcursion(state: AppState, tank: Tank): AppState {
       actorId: SYSTEM_ACTOR,
       action: 'deviation.excursion_ended',
       entityId: open.id,
-      detail: `${tank.id} back below ${BREACH_LIMIT_C} °C after ${formatSpan(minutes)} above the limit. Peak ${last.peakC.toFixed(1)} °C.`,
+      detail: `${tank.id} back below ${BREACH_LIMIT_C} °C. Exposure: ${describeExcursion(exposure)}.`,
     })
   }
   return s

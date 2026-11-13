@@ -1,7 +1,7 @@
 import { personName } from '../domain/people'
-import { excursionSummary } from '../domain/excursion'
+import { describeExposureTime, excursionSummary } from '../domain/excursion'
 import type { Deviation } from '../domain/types'
-import { formatDateTime, formatDue, formatSpan } from '../lib/format'
+import { formatDateTime, formatDue } from '../lib/format'
 import { CATEGORY_LABEL, DEVIATION_STATUS, LEVEL_LABEL } from '../lib/labels'
 import { Pill } from './Pill'
 import { SeverityPill } from './Severity'
@@ -104,9 +104,9 @@ function ExcursionNote({ deviation, now }: { deviation: Deviation; now: string }
   const x = excursionSummary(deviation, now)
   if (!x) return null
   return (
-    <span className={x.ongoing ? 'dev-table__excursion dev-table__excursion--live' : 'dev-table__excursion'}>
+    <span className={x.ongoing || x.unknownOngoing ? 'dev-table__excursion dev-table__excursion--live' : 'dev-table__excursion'}>
       {' · '}
-      {formatSpan(x.minutes)} above limit{x.ongoing ? ' (ongoing)' : ''}
+      Exposure: {describeExposureTime(x)}
     </span>
   )
 }

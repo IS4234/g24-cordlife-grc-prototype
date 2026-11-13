@@ -69,9 +69,11 @@ export interface ChangeRequest {
 /** One stretch of time a tank spent above the breach limit */
 export interface Excursion {
   startedAt: string
-  /** Missing while the tank is still above the limit */
+  /** Missing until a trusted reading confirms recovery */
   endedAt?: string
   peakC: number
+  /** Gaps without trusted readings; absent on older records and uninterrupted excursions. */
+  unknownPeriods?: { startedAt: string; endedAt?: string }[]
 }
 
 export interface Deviation {
