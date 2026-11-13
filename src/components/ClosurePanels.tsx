@@ -231,7 +231,7 @@ export function ChangeRequestPanel({ deviation: d, actorId }: PanelProps) {
           </select>
         </label>
         <label className="field">
-          Justification
+          Justification (at least 10 characters)
           <textarea id="change-reason" value={reason} onChange={(e) => setReason(e.target.value)} />
         </label>
         <div>
@@ -247,7 +247,8 @@ export function ChangeRequestPanel({ deviation: d, actorId }: PanelProps) {
 export function PendingChangePanel({ deviation: d, actorId }: PanelProps) {
   const req = d.pendingChange!
   const ongoing = ongoingCondition(useAppState(), d)
-  const blocker = changeBlocker(d, actorId) ?? (req.kind === 'dismiss' ? ongoing : null)
+  const rejectionBlocker = changeBlocker(d, actorId)
+  const blocker = rejectionBlocker ?? (req.kind === 'dismiss' ? ongoing : null)
   const what =
     req.kind === 'dismiss' ? 'dismiss this deviation' : `lower severity to ${SEVERITY[req.to!].label}`
 
@@ -273,7 +274,7 @@ export function PendingChangePanel({ deviation: d, actorId }: PanelProps) {
         <button
           type="button"
           className="btn btn--ghost btn--small"
-          disabled={!!blocker}
+          disabled={!!rejectionBlocker}
           onClick={() => decideDeviationChange(d.id, actorId, false)}
         >
           Reject request
